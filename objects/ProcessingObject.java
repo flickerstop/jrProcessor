@@ -97,12 +97,18 @@ public class ProcessingObject {
 			Util.randomSleep();
 			
 			// Wait for the interface to open
+			long endTime = new Date().getTime() + 10000L;
 			while(!skipinterface) {
 				System.out.println("Looking for make interface...");
 				if(Interfaces.findWhereAction("Make") != null) {
 					break;
 				}else {
 					Util.randomSleep();
+				}
+				
+				// If the current time is larger than the end time
+				if(new Date().getTime() > endTime) {
+					return;
 				}
 			}
 			
@@ -111,7 +117,7 @@ public class ProcessingObject {
 			Mouse.leaveGame(true);
 			
 			// wait for done or level up
-			long endTime = new Date().getTime() + 30000L;
+			endTime = new Date().getTime() + 30000L;
 			System.out.println("Looking for level up or finished processing...");
 			while(true) {
 				int numItem2 = Inventory.getCount(this.item2);
