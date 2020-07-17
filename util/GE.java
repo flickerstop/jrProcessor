@@ -1,4 +1,4 @@
-package scripts;
+package scripts.util;
 
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,8 +16,6 @@ import org.tribot.api2007.types.RSInterface;
 import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSTile;
-
-import scripts.util.Util;
 
 public class GE {
 	static int sellMinus = 3;
@@ -167,11 +165,25 @@ public class GE {
 		
 		// set the buy price
 		if(buyPrice == 0) {
-			Mouse.moveBox(433,202, 463,222);
-			for(int i = 0; i < ThreadLocalRandom.current().nextInt(4, 7+1); i++) {
+			// If the price is less than 2000
+			if(GrandExchange.getGuidePrice() < 2000) {
+				// Buy it for 10k
+				Mouse.moveBox(376,202,406,222);
 				Mouse.click(1);
-				Util.randomSleepRange(20, 100);
+				Util.randomSleepRange(1000, 4000);
+				for(int i = 0; i < ("10000").length(); i++) {
+					Keyboard.sendType(("10000").charAt(i));
+					Util.randomSleepRange(50,100);
+				}
+				Keyboard.pressEnter();
+			}else { // spam the 10% up button
+				Mouse.moveBox(433,202, 463,222);
+				for(int i = 0; i < ThreadLocalRandom.current().nextInt(7, 15+1); i++) {
+					Mouse.click(1);
+					Util.randomSleepRange(20, 100);
+				}
 			}
+			
 		}else {
 			Mouse.moveBox(376,202,406,222);
 			Mouse.click(1);
@@ -509,10 +521,11 @@ public class GE {
 	 * @return true if all sold
 	 */
 	public static boolean sellInventory() {
+		int sellPriceOffset = 2;
 		while(Inventory.getAll().length > 1) {
 			makeSureInGE();
 			
-			int sellPriceOffset = 2;
+			
 			// Loop through the items and sell them all
 			for(RSItem item : Inventory.getAll()) {
 				if(item.name.equalsIgnoreCase("coins")) {
@@ -521,7 +534,7 @@ public class GE {
 				
 				int sellPrice = checkSellPrice(item);
 				
-				GE.openSellOffer(item, sellPrice-5-sellPriceOffset, 0);
+				GE.openSellOffer(item, sellPrice-8-sellPriceOffset, 0);
 				
 				// If there are no free spots
 				if(numFreeSpots() == 0) {

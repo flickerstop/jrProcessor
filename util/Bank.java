@@ -1,20 +1,15 @@
-package scripts;
+package scripts.util;
 
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Game;
 import org.tribot.api2007.Inventory;
-import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
-import org.tribot.api2007.Walking;
-import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
-import org.tribot.api2007.types.RSTile;
 
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
-import scripts.util.Util;
 
 public class Bank {
 	public static boolean openBank() {
@@ -22,6 +17,7 @@ public class Bank {
 		if(Banking.isBankScreenOpen()) {
 			return true;
 		}
+		
 		
 		Util.walkToGESpot();
 		

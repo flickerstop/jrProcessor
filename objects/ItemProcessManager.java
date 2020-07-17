@@ -3,9 +3,6 @@ package scripts.objects;
 import java.util.ArrayList;
 
 import org.tribot.api2007.Banking;
-import org.tribot.api2007.GrandExchange;
-
-import scripts.util.Util;
 
 public class ItemProcessManager {
 	public static ProcessingObject searchBank() {
@@ -54,6 +51,8 @@ public class ItemProcessManager {
 		listOfProcessingItems.add(new ProcessingObject("Eye of newt", "Guam potion (unf)", "Attack potion(3)", 1, 1, 1,0,false));
 		listOfProcessingItems.add(new ProcessingObject("Grimy ranarr weed", "", "Ranarr weed", 1, 0, 1,2,false));
 		listOfProcessingItems.add(new ProcessingObject("Ranarr weed", "Vial of water", "Ranarr potion (unf)", 1, 1, 1,0,true));
+		listOfProcessingItems.add(new ProcessingObject("Bird nest", "Pestle and mortar", "Crushed nest", 1, 1, 1,3,true).setItem2Stack(true));
+		listOfProcessingItems.add(new ProcessingObject("Volcanic ash", "Supercompost", "Ultracompost", 2, 1, 1,0,true).setItem1Stack(true));
 		
 		return listOfProcessingItems;
 	}

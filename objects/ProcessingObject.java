@@ -21,9 +21,14 @@ public class ProcessingObject {
 	public int item2Count = 0;
 	public int resultCount = 0;
 	
+	private boolean isItem1Stack = false;
+	private boolean isItem2Stack = false;
+	
 	public int processType = 0;
 	
 	public boolean isSell = true;
+	
+	private int MAKE_INTERFACE_ID = 270;
 	
 	/**
 	 * Creates an object for processing
@@ -98,9 +103,9 @@ public class ProcessingObject {
 			
 			// Wait for the interface to open
 			long endTime = new Date().getTime() + 10000L;
+			System.out.println("Looking for make interface...");
 			while(!skipinterface) {
-				System.out.println("Looking for make interface...");
-				if(Interfaces.findWhereAction("Make") != null) {
+				if(Interfaces.get(MAKE_INTERFACE_ID) != null) {
 					break;
 				}else {
 					Util.randomSleep();
@@ -108,12 +113,33 @@ public class ProcessingObject {
 				
 				// If the current time is larger than the end time
 				if(new Date().getTime() > endTime) {
+					Util.log("Waited long enough");
 					return;
 				}
 			}
 			
-			Keyboard.sendPress(' ',32);
-			Util.randomSleep();
+			Util.randomSleepRange(500, 1000);
+			
+			// Spam space until the make interface is gone
+			endTime = new Date().getTime() + 20000L;
+			Util.log("Spamming SPACE now");
+			while(true) {
+				
+				Keyboard.sendPress(' ',32);
+				Util.randomSleep();
+				Keyboard.sendRelease(' ',32);
+				
+				// If the current time is larger than the end time
+				if(new Date().getTime() > endTime) {
+					Util.log("Waited long enough");
+					return;
+				}
+				
+				if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
+					break;
+				}
+			}
+			
 			Mouse.leaveGame(true);
 			
 			// wait for done or level up
@@ -133,6 +159,7 @@ public class ProcessingObject {
 				
 				// If the current time is larger than the end time
 				if(new Date().getTime() > endTime) {
+					Util.log("Waited long enough");
 					break;
 				}
 				
@@ -208,51 +235,122 @@ public class ProcessingObject {
 
 				
 			}
+		}else if(processType == 3) {
+			// Use item 2 on the last item 1 over and over
+			
+			Mouse.setSpeed(300);
+			// Loop till there is no more item 1
+			while(Inventory.getCount(this.item1) > 0) {
+				// if somehow we don't have item 2
+				if(Inventory.getCount(this.item2) == 0) {
+					break;
+				}
+				
+				// Get item 2
+				RSItem item2 = Inventory.find(this.item2)[0];
+				// Get the last item 1
+				RSItem item1 = Inventory.find(this.item1)[Inventory.find(this.item1).length-1];
+				
+				item1.click("use");
+				item2.click("use");
+			}
+			Mouse.setSpeed(100);
 		}
 	}
 	
 	public boolean inBank() {
 		Util.randomSleep();
 		
-		// Calculate how much of each item to take out
-		int totalItems = this.item1Count + this.item2Count;
-		
-		int itemsPerType = (int)Math.floor(28/totalItems);
-		
-		
-		// Take out Item 1
-		Banking.withdraw(itemsPerType, this.item1);
-		Banking.withdraw(itemsPerType, this.item2);
-
-		
-		// Make sure we withdrew the proper amount of items
-		for(int i = 0; i <= 10; i++) {
-			// Check if there's the proper number of items in the inventory
-			if(Inventory.getCount(this.item1) == itemsPerType && Inventory.getCount(this.item2) == itemsPerType) {
-				break;
+		// Making items that take 27 out then 1
+		if(processType == 3) {
+			// Take out Item 1
+			Banking.withdraw(27, this.item1);
+			Banking.withdraw(27, this.item2);
+			
+			// Make sure we withdrew the proper amount of items
+			for(int i = 0; i <= 10; i++) {
+				// Check if there's the proper number of items in the inventory
+				if(Inventory.getCount(this.item1) == 27 && Inventory.getCount(this.item2) == 1) {
+					break;
+				}else {
+					Util.randomSleepRange(50,200);
+				}
+				// After 10 sleeps, withdraw the item again
+				if(i == 10) {
+					if(Inventory.getCount(this.item1) != 27) {
+						Banking.withdraw(27, this.item1);
+					}
+					// Check if there's enough of item 2 ONLY if there's not 27 (item 1 was a stack)
+					if(Inventory.getCount(this.item2) != 27) {
+						Banking.withdraw(1, this.item2);
+					}
+				}
+			}
+			
+		}else { // MAKING EVERYTHING ELSE
+			// Calculate how much of each item to take out
+			int totalItems = this.item1Count + this.item2Count;
+			
+			int amountOfActions = (int)Math.floor(28/totalItems);
+			
+			//int itemsPerType = (int)Math.floor(28/totalItems);
+			int numItem1 = 0;
+			int numItem2 = 0;
+			
+			// Check if one of the items is a stack
+			if(this.isItem1Stack) {
+				numItem1 = this.item1Count*27;
+				numItem2 = this.item1Count*27;
+			}else if(this.isItem2Stack) {
+				numItem1 = this.item1Count*27;
+				numItem2 = this.item2Count*27;
 			}else {
-				Util.randomSleepRange(50,200);
+				
+				numItem1 = amountOfActions * this.item1Count;
+				numItem2 = amountOfActions * this.item2Count;
 			}
-			// After 10 sleeps, withdraw the item again
-			if(i == 10) {
-				if(Inventory.getCount(this.item1) != itemsPerType) {
-					Banking.withdraw(itemsPerType, this.item1);
+			
+			Util.log(this.isItem1Stack + " | " + this.isItem2Stack);
+			Util.log("1: "+numItem1 +"      2: "+numItem2);
+			
+			// Take out Item 1
+			Banking.withdraw(numItem1, this.item1);
+			Banking.withdraw(numItem2, this.item2);
+
+			
+			// Make sure we withdrew the proper amount of items
+			for(int i = 0; i <= 10; i++) {
+				// Check if there's the proper number of items in the inventory
+				if(Inventory.getCount(this.item1) == numItem1 && Inventory.getCount(this.item2) == numItem2) {
+					break;
+				}else {
+					Util.randomSleepRange(50,200);
 				}
-				if(Inventory.getCount(this.item2) != itemsPerType) {
-					Banking.withdraw(itemsPerType, this.item2);
+				// After 10 sleeps, withdraw the item again
+				if(i == 10) {
+					if(Inventory.getCount(this.item1) != numItem1) {
+						Banking.withdraw(numItem1, this.item1);
+					}
+					// Check if there's enough of item 2 ONLY if there's not 27 (item 1 was a stack)
+					if(Inventory.getCount(this.item2) != numItem2 && Inventory.getCount(this.item2) != 27) {
+						Banking.withdraw(numItem2, this.item2);
+					}
 				}
 			}
 		}
 		
-		// Check if both items have the proper number of items in the inventory
-		if(Inventory.getCount(this.item2) != this.item2Count ||
-			Inventory.getCount(this.item1) != this.item1Count) {
-			return false;
-		}
 		
 		return true;
 	}
 	
 
+	public ProcessingObject setItem1Stack(boolean value) {
+		this.isItem1Stack = value;
+		return this;
+	}
+	public ProcessingObject setItem2Stack(boolean value) {
+		this.isItem2Stack = value;
+		return this;
+	}
 
 }

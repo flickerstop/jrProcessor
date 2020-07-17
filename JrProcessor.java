@@ -1,18 +1,9 @@
 package scripts;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
 
-import org.tribot.api.input.Keyboard;
-import org.tribot.api.input.Mouse;
-import org.tribot.api.util.abc.ABCUtil;
 import org.tribot.api2007.Banking;
-import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Login;
-import org.tribot.api2007.Player;
-import org.tribot.api2007.types.RSItem;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.Breaking;
@@ -21,14 +12,20 @@ import org.tribot.script.interfaces.Starting;
 
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
+import scripts.util.Bank;
+import scripts.util.GE;
+import scripts.util.Network;
 import scripts.util.Util;
 
 
-@ScriptManifest(authors = { "JR" }, category = "Tools", name = "Jr Test")
+@ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrProcessor")
 public class JrProcessor extends Script implements Starting, Breaking, PreBreaking {
 	
 	private boolean isReadyToBreak = false;
 	private boolean isBreaking = false;
+	
+	private int totalCashStack = 0;
+	private int totalBought = 0;
 	
 	@Override
 	public void onStart() {
@@ -42,6 +39,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	
 	@Override
 	public void run() {
+		Network.init();
+		
+		
 		if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
 			Login.login();
 		}
@@ -68,10 +68,22 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			// Search the bank for what items to process
 			ProcessingObject process = ItemProcessManager.searchBank();
 			
+			
+			
+			
 			// Check if no items to make
 			if(process == null) {
 				Util.randomSleepRange(1000,2000);
 				break;
+			}
+			
+			// Grab the data for the API
+			try {
+				Network.updateAPI(process,totalCashStack,totalBought);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
 			}
 			
 			Util.log("Creating:"+process.result);
@@ -127,15 +139,22 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		GE.sellInventory();
 		
 		// Buy the items needed
-		String itemsToBuy[] = {"Grimy ranarr weed","Vial of water"};
+		String itemsToBuy[] = Network.getNextItem();
 		ArrayList<Integer> buyPrice = new ArrayList<Integer>();
 		
 		int totalCoins = Inventory.find("Coins")[0].getStack();
+		totalCashStack = totalCoins;
 		int totalPrice = 0;
 		
 		Util.log("\nChecking Prices of items to buy...");
 		// Get the price to buy the items at
 		for(int i = 0; i <= itemsToBuy.length-1; i++) {
+			
+			// Skip null items
+			if(itemsToBuy[i].equalsIgnoreCase("null")) {
+				continue;
+			}
+			
 			Util.log("Checking price of: " + itemsToBuy[i]);
 			int itemSellPrice = GE.checkSellPrice(itemsToBuy[i]);
 			
@@ -167,9 +186,15 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 		// Calculate how many to buy
 		int amountToBuy = (totalCoins - 30000)/totalPrice;
+		totalBought = amountToBuy;
 		Util.log("\nBuying Items...");
 		// Buy the items
 		for(int i = 0; i <= itemsToBuy.length-1; i++) {
+			// Skip null items
+			if(itemsToBuy[i].equalsIgnoreCase("null")) {
+				continue;
+			}
+			
 			Util.log("\n\nBuying: " + itemsToBuy[0]);
 			Util.log("Price: " + buyPrice.get(i));
 			Util.log("Amount: " + amountToBuy);
