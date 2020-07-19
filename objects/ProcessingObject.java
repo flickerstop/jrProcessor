@@ -54,9 +54,27 @@ public class ProcessingObject {
 	
 	public void inInventory() {
 		
+		try {
+			RSItem item1 = Inventory.find(this.item1)[0];
+			RSItem item2 = Inventory.find(this.item2).length != 0 ? Inventory.find(this.item2)[0] : null;
+			
+			if(item1.getDefinition().isNoted()) {
+				Util.log("Item 1 in inventory are noted!!");
+				return;
+			}
+			if(item2 != null && item2.getDefinition().isNoted()) {
+				Util.log("Item 2 in inventory are noted!!");
+				return;
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
 		////////////////////////////////////
 		// Normal AFK item making
-		if(processType == 0) {
+		if(processType == 0 || processType == 6) {
 			// Get the array of all the locations of the items in the inventory
 			RSItem item1Array[] = Inventory.find(this.item1);
 			RSItem item2Array[] = Inventory.find(this.item2);
@@ -84,6 +102,12 @@ public class ProcessingObject {
 				// Do something...
 			}
 			
+			// If doing bows
+			if(processType == 6) {
+				// Set item 1 to the end
+				randomNumItem1 = item1Array.length-1;
+			}
+			
 			// Make sure that item exists
 			if(randomNumItem1 > item1Array.length) {
 				randomNumItem1 = item1Array.length;
@@ -92,8 +116,16 @@ public class ProcessingObject {
 				randomNumItem2 = item2Array.length;
 			}
 			
-			RSItem item1 = item1Array[randomNumItem1];
-			RSItem item2 = item2Array[randomNumItem2];
+			RSItem item1 = null;
+			RSItem item2 = null;
+			
+			try {
+				item1 = item1Array[randomNumItem1];
+				item2 = item2Array[randomNumItem2];
+			}catch (Exception e) {
+				return;
+			}
+			
 			
 			
 			item1.click("use");
@@ -125,9 +157,15 @@ public class ProcessingObject {
 			Util.log("Spamming SPACE now");
 			while(true) {
 				
-				Keyboard.sendPress(' ',32);
-				Util.randomSleep();
-				Keyboard.sendRelease(' ',32);
+				if(processType == 0) {
+					Keyboard.sendPress(' ',32);
+					Util.randomSleep();
+					Keyboard.sendRelease(' ',32);
+				}else if(processType == 6) {
+					Keyboard.sendType('3');
+					Util.randomSleep();
+				}
+				
 				
 				// If the current time is larger than the end time
 				if(new Date().getTime() > endTime) {
@@ -144,6 +182,10 @@ public class ProcessingObject {
 			
 			// wait for done or level up
 			endTime = new Date().getTime() + 30000L;
+			if(processType == 6) {
+				endTime = new Date().getTime() + 60000L;
+			}
+			
 			System.out.println("Looking for level up or finished processing...");
 			while(true) {
 				int numItem2 = Inventory.getCount(this.item2);
@@ -255,6 +297,79 @@ public class ProcessingObject {
 				item2.click("use");
 			}
 			Mouse.setSpeed(100);
+		}else if(processType == 4) {
+			try {
+				while(Inventory.find(this.item1).length > 0 && Inventory.find(this.item2).length > 0) {
+					// Get item 1 and item 2
+					RSItem item1 = Inventory.find(this.item1)[0];
+					RSItem item2 = Inventory.find(this.item2)[0];
+					
+					item1.click("use");
+					item2.click("use");
+					
+					Util.randomSleepRange(2000, 3000);
+					
+					// Spam space until the make interface is gone
+					long endTime = new Date().getTime() + 20000L;
+					Util.log("Spamming SPACE now");
+					while(true) {
+						
+						Keyboard.sendPress(' ',32);
+						Util.randomSleep();
+						Keyboard.sendRelease(' ',32);
+						
+						// If the current time is larger than the end time
+						if(new Date().getTime() > endTime) {
+							Util.log("Waited long enough");
+							return;
+						}
+						
+						if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
+							break;
+						}
+					}
+					
+					// wait for done or level up
+					endTime = new Date().getTime() + 15000L;
+					System.out.println("Looking for level up or finished processing...");
+					while(true) {
+						int numItem2 = Inventory.getCount(this.item2);
+						int numItem1 = Inventory.getCount(this.item1);
+						if(Interfaces.get(233) != null) {
+							break;
+						}else if(numItem1 == 0 || numItem2 == 0){
+							break;
+						}else {
+							Util.randomSleep();
+						}
+						
+						
+						// If the current time is larger than the end time
+						if(new Date().getTime() > endTime) {
+							break;
+						}
+					}
+				}
+			}catch(Exception e) {
+				return;
+			}
+		}else if(processType == 5) {
+			Mouse.setSpeed(300);
+			try {
+				while(Inventory.find(this.item1).length > 0 && Inventory.find(this.item2).length > 0) {
+					// Get item 2
+					RSItem item2 = Inventory.find(this.item2)[0];
+					// Get the last item 1
+					RSItem item1 = Inventory.find(this.item1)[0];
+					
+					item1.click("use");
+					item2.click("use");
+				}
+			}catch(Exception e) {
+				Mouse.setSpeed(100);
+				return;
+			}
+			Mouse.setSpeed(100);
 		}
 	}
 	
@@ -262,7 +377,7 @@ public class ProcessingObject {
 		Util.randomSleep();
 		
 		// Making items that take 27 out then 1
-		if(processType == 3) {
+		if(processType == 3 || processType == 6) {
 			// Take out Item 1
 			Banking.withdraw(27, this.item1);
 			Banking.withdraw(27, this.item2);
@@ -281,13 +396,22 @@ public class ProcessingObject {
 						Banking.withdraw(27, this.item1);
 					}
 					// Check if there's enough of item 2 ONLY if there's not 27 (item 1 was a stack)
-					if(Inventory.getCount(this.item2) != 27) {
-						Banking.withdraw(1, this.item2);
+					if(Inventory.getCount(this.item2) != 1) {
+						Banking.withdraw(27, this.item2);
 					}
 				}
 			}
 			
+		}else if(processType == 4 || processType == 5){
+			while(Banking.find(this.item1).length != 0 || Banking.find(this.item2).length != 0) {
+				// Take out Item 1
+				Banking.withdraw(0, this.item1);
+				Banking.withdraw(0, this.item2);
+				
+				Util.randomSleepRange(2000, 3000);
+			}
 		}else { // MAKING EVERYTHING ELSE
+		
 			// Calculate how much of each item to take out
 			int totalItems = this.item1Count + this.item2Count;
 			

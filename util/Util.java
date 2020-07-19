@@ -3,6 +3,9 @@ package scripts.util;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.General;
+import org.tribot.api2007.Camera;
+import org.tribot.api2007.GameTab;
+import org.tribot.api2007.Login;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.Walking;
 import org.tribot.api2007.types.RSTile;
@@ -26,6 +29,11 @@ public class Util{
 			int sleepTime = ThreadLocalRandom.current().nextInt(1000, 3000);
 			General.sleep(sleepTime);
 		}
+		
+		// Check to make sure the inventory is open
+		if(GameTab.getOpen() != GameTab.TABS.INVENTORY) {
+			GameTab.open(GameTab.TABS.INVENTORY);
+		}
 	}
 	
 	/**
@@ -34,8 +42,30 @@ public class Util{
 	 * @param max Maximum amount of milliseconds
 	 */
 	public static void randomSleepRange(int min, int max) {
+		if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
+			Login.login();
+		}
+		
 		int sleepTime = ThreadLocalRandom.current().nextInt(min, max+1);
 		General.sleep(sleepTime);
+		
+		
+	}
+	
+	public static void randomSleepRange(int min, int max,boolean isAutoLog) {
+		int sleepTime = ThreadLocalRandom.current().nextInt(min, max+1);
+		General.sleep(sleepTime);
+	}
+	
+	public static void randomTypeSleep() {
+		int rand = ThreadLocalRandom.current().nextInt(1, 100+1);
+		if(rand <= 70) {
+			randomSleepRange(120,200);
+		}else {
+			randomSleepRange(800, 1300);
+		}
+		
+		
 	}
 	
 	public static void log(String output) {
@@ -62,6 +92,8 @@ public class Util{
 		// Get the position of the player
 		RSTile currentPosition = Player.getPosition();
 		RSTile allowedTiles[] = {new RSTile(3167,3488, 0)};
+		
+		Camera.setCamera(0,100);
 		
 		// For each of the allowed tiles to stand on
 		for(RSTile tile : allowedTiles) {

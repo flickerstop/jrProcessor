@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
+import org.tribot.api2007.Banking;
 import org.tribot.api2007.GrandExchange;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
@@ -21,6 +22,12 @@ public class GE {
 	static int sellMinus = 3;
 	
 	public static boolean openGE() {
+		
+		if(Banking.isBankScreenOpen()) {
+			Banking.close();
+			Util.randomSleepRange(2000, 3000);
+		}
+		
 		// Get the position of the player
 		RSTile currentPosition = Player.getPosition();
 		RSTile allowedTiles[] = {new RSTile(3167,3488, 0)};
@@ -77,7 +84,8 @@ public class GE {
 		// Right click the closest NPC and exchange
 		closestNPC.click("Exchange Grand Exchange Clerk");
 		
-		GE.waitForMainPage();
+		
+		Util.randomSleepRange(1000,3000);
 		
 		// Check to see if the grand exchange window is open
 		if(GrandExchange.getWindowState() != null) {
@@ -112,12 +120,18 @@ public class GE {
 			}
 		}
 		
+		// If there is no free spots
 		if(!isOfferFree) {
 			return false;
 		}
 
-		GE.waitForNewOfferPage();
-		Util.randomSleep();
+		Util.randomSleepRange(2000,3000);
+		
+		// Make sure we're still in the ge
+		if(!isInGE()) {
+			GE.resetGEWindow();
+			return openBuyOffer(itemName, buyPrice, quantity);
+		}
 		
 		// Slowly type out the item name
 		for(int i = 0; i < itemName.length(); i++) {
@@ -129,6 +143,7 @@ public class GE {
 					// if the interface contains the item name
 					if(temp.getComponentName().contains(itemName)) {
 						// Click it
+						Util.randomSleepRange(500, 1000);
 						temp.click();
 						Util.randomSleepRange(500, 1000);
 						isClicked = true;
@@ -143,10 +158,11 @@ public class GE {
 			}catch(Exception e) {
 				// unable to find ge enter box
 			}
+			
 			// If no interface has been clicked
 			if(!isClicked) {
 				Keyboard.sendType(Character.toLowerCase(itemName.charAt(i)));
-				Util.randomSleepRange(500, 1000);
+				Util.randomTypeSleep();
 				// Make sure we're in the GE window for a new offer
 				if(GrandExchange.getWindowState() != GrandExchange.WINDOW_STATE.NEW_OFFER_WINDOW) {
 					GE.resetGEWindow();
@@ -169,28 +185,31 @@ public class GE {
 			if(GrandExchange.getGuidePrice() < 2000) {
 				// Buy it for 10k
 				Mouse.moveBox(376,202,406,222);
+				Util.randomSleep();
 				Mouse.click(1);
-				Util.randomSleepRange(1000, 4000);
+				Util.randomSleepRange(3000, 4000);
 				for(int i = 0; i < ("10000").length(); i++) {
 					Keyboard.sendType(("10000").charAt(i));
-					Util.randomSleepRange(50,100);
+					Util.randomSleepRange(120,200);
 				}
 				Keyboard.pressEnter();
 			}else { // spam the 10% up button
 				Mouse.moveBox(433,202, 463,222);
+				Util.randomSleep();
 				for(int i = 0; i < ThreadLocalRandom.current().nextInt(7, 15+1); i++) {
 					Mouse.click(1);
-					Util.randomSleepRange(20, 100);
+					Util.randomSleepRange(50, 120);
 				}
 			}
 			
 		}else {
 			Mouse.moveBox(376,202,406,222);
+			Util.randomSleep();
 			Mouse.click(1);
-			Util.randomSleepRange(1000, 4000);
+			Util.randomSleepRange(2000, 4000);
 			for(int i = 0; i < (buyPrice+"").length(); i++) {
 				Keyboard.sendType((buyPrice+"").charAt(i));
-				Util.randomSleepRange(50,100);
+				Util.randomSleepRange(120,200);
 			}
 			Keyboard.pressEnter();
 		}
@@ -204,11 +223,12 @@ public class GE {
 		// set the quantity
 		if(quantity != 0) {
 			Mouse.moveBox(219,202,249,222);
+			Util.randomSleep();
 			Mouse.click(1);
-			Util.randomSleepRange(1000, 4000);
+			Util.randomSleepRange(3000, 4000);
 			for(int i = 0; i < (quantity+"").length(); i++) {
 				Keyboard.sendType((quantity+"").charAt(i));
-				Util.randomSleepRange(50,100);
+				Util.randomSleepRange(120,200);
 			}
 			Keyboard.pressEnter();
 		}
@@ -222,8 +242,9 @@ public class GE {
 		
 		// Click confirm
 		Mouse.moveBox(185,269,334,306);
+		Util.randomSleep();
 		Mouse.click(1);
-		Util.randomSleepRange(1000, 4000);
+		Util.randomSleepRange(2000, 3000);
 		
 		// Check to see if we're at the "select offer" screen
 		if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
@@ -248,46 +269,65 @@ public class GE {
 		// Click on the item in the inventory
 		itemToSell.click();
 		
-		GE.waitForNewOfferPage();
+		Util.randomSleepRange(2000, 4000);
+		
+		// Reset if the GE closed
+		if(!isInGE()) {
+			GE.resetGEWindow();
+			return openSellOffer(itemToSell, sellPrice, quantity);
+		}
 		
 		// set the sell price
 		if(sellPrice != 0) {
 			Mouse.moveBox(376,202,406,222);
+			Util.randomSleep();
 			Mouse.click(1);
-			Util.randomSleepRange(1000, 4000);
+			Util.randomSleepRange(2000, 4000);
 			for(int i = 0; i < (sellPrice+"").length(); i++) {
 				Keyboard.sendType((sellPrice+"").charAt(i));
-				Util.randomSleepRange(50,100);
+				Util.randomSleepRange(120,200);
 			}
 			Keyboard.pressEnter();
 		}
 		Util.randomSleep();
+		
+		// Reset if the GE closed
 		if(!isInGE()) {
-			return false;
+			GE.resetGEWindow();
+			return openSellOffer(itemToSell, sellPrice, quantity);
 		}
+		
+		
 		// Set the amount to sell
 		if(quantity == 0) {
 			Mouse.moveBox(177,202,207,222);
+			Util.randomSleep();
 			Mouse.click(1);
+			Util.randomSleepRange(300, 600);
 		}else if(quantity > 0) {
 			Mouse.moveBox(219,202,249,222);
+			Util.randomSleep();
 			Mouse.click(1);
-			Util.randomSleepRange(1000, 4000);
+			Util.randomSleepRange(3000, 4000);
 			for(int i = 0; i < (quantity+"").length(); i++) {
 				Keyboard.sendType((quantity+"").charAt(i));
-				Util.randomSleepRange(50,100);
+				Util.randomSleepRange(120,200);
 			}
 			Keyboard.pressEnter();
 		}
 		Util.randomSleep();
+		
+		// Reset if the GE closed
 		if(!isInGE()) {
-			return false;
+			GE.resetGEWindow();
+			return openSellOffer(itemToSell, sellPrice, quantity);
 		}
 		
 		// Click confirm
 		Mouse.moveBox(185,269,334,306);
+		Util.randomSleep();
 		Mouse.click(1);
-		Util.randomSleepRange(1000, 4000);
+		Util.randomSleepRange(2000, 4000);
 		
 		// Check to see if we're at the "select offer" screen
 		if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
@@ -323,7 +363,12 @@ public class GE {
 		
 		// find the offer that holds this item bought
 		while(true) {
-			makeSureInGE();
+			// Reset if the GE closed
+			if(!isInGE()) {
+				GE.resetGEWindow();
+				GE.collectAndCancel();
+				return checkSellPrice(itemToCheck);
+			}
 			
 			RSGEOffer boughtItem = null;
 			for(RSGEOffer offer : GrandExchange.getOffers()) {
@@ -348,30 +393,16 @@ public class GE {
 			}else {
 				// Open the offer
 				boughtItem.click();
-				GE.waitForOldOfferPage();
+
+
+				Util.randomSleepRange(2000, 4000);
 
 				
 				// Get the price of the item
 				int cost = boughtItem.getTransferredGP();
 				
-				// Collect the items
-				while(GrandExchange.getCollectItems().length != 0) {
-					if(!isInGE()) {
-						cost = -1;
-						break;
-					}
-					
-					
-					for(RSItem collect : GrandExchange.getCollectItems()) {
-						Util.randomSleep();
-						collect.click();
-					}
-					Util.randomSleepRange(1000, 2000);
-				}
-				if(cost != -1) {
-					GE.waitForMainPage();
-					return cost;
-				}
+				clickCollectAll();
+				return cost;
 				
 			}
 		}
@@ -388,11 +419,16 @@ public class GE {
 			return -1;
 		}
 		
-		GE.waitForMainPage();
+		Util.randomSleepRange(2000, 4000);
 		
 		// find the offer that holds this item bought
 		while(true) {
-			makeSureInGE();
+			// Reset if the GE closed
+			if(!isInGE()) {
+				GE.resetGEWindow();
+				GE.collectAndCancel();
+				return checkBuyPrice(itemToCheck,quantity);
+			}
 			
 			RSGEOffer boughtItem = null;
 			for(RSGEOffer offer : GrandExchange.getOffers()) {
@@ -417,30 +453,14 @@ public class GE {
 			}else {
 				// Open the offer
 				boughtItem.click();
-				GE.waitForOldOfferPage();
+				Util.randomSleepRange(2000, 3000);
 
 				
 				// Get the price of the item
 				int cost = boughtItem.getTransferredGP();
 				
-				// Collect the items
-				while(GrandExchange.getCollectItems().length != 0) {
-					if(!isInGE()) {
-						cost = -1;
-						break;
-					}
-					
-					
-					for(RSItem collect : GrandExchange.getCollectItems()) {
-						Util.randomSleep();
-						collect.click();
-					}
-					Util.randomSleepRange(1000, 2000);
-				}
-				if(cost != -1) {
-					GE.waitForMainPage();
-					return cost;
-				}
+				clickCollectAll();
+				return cost;
 			}
 		}
 	}
@@ -448,58 +468,32 @@ public class GE {
 	/**
 	 * Cancels/collects all currently running/finished offers 
 	 */
-	private static void collectAndCancel() {
+	public static void collectAndCancel() {
 		makeSureInGE();
-		
-		// Click the collect all button first
-		Mouse.moveBox(414,61,492,76);
-		Mouse.click(1);
 		
 		Util.randomSleepRange(1000, 2000);
 		
+		boolean anythingInGE = false;
+		
 		// loop until no offers are found
 		for(RSGEOffer offer : GrandExchange.getOffers()) {
-			if(offer.getStatus() != RSGEOffer.STATUS.EMPTY) {
-				offer.click();
-				GE.waitForOldOfferPage();
-				
-				// If this offer is not finished
-				if(offer.getStatus() == RSGEOffer.STATUS.IN_PROGRESS) {
-					// Cancel it
-					Mouse.moveBox(349,266,367,283);
-					Mouse.click(1);
-					
-					// Wait for offer to end
-					while(true) {
-						if(!isInGE()) {
-							collectAndCancel();
-							return;
-						}
-						
-						Util.randomSleep();
-						if(GrandExchange.getStatus() == RSGEOffer.STATUS.CANCELLED || GrandExchange.getStatus() == RSGEOffer.STATUS.COMPLETED) {
-							break;
-						}
-					}
-				}
-				//Util.randomSleepRange(2000, 5000);
-				
-				// Collect the items
-				while(GrandExchange.getCollectItems().length != 0) {	
-					if(!isInGE()) {
-						collectAndCancel();
-						return;
-					}
-					for(RSItem collect : GrandExchange.getCollectItems()) {
-						Util.randomSleep();
-						collect.click();
-					}
-					Util.randomSleepRange(1000, 2000);
-				}
-				
-				GE.waitForMainPage();
+			if(offer.getStatus() != RSGEOffer.STATUS.EMPTY && offer.getStatus() != RSGEOffer.STATUS.COMPLETED) {
+				anythingInGE = true;
+				offer.click("Abort offer");
+				Util.randomSleep();
+			}else if(offer.getStatus() == RSGEOffer.STATUS.COMPLETED) {
+				anythingInGE = true;
 			}
 		}
+		
+		if(anythingInGE) {
+			// Click the collect all button
+			Mouse.moveBox(414,61,492,76);
+			Util.randomSleep();
+			Mouse.click(1);
+			Util.randomSleep();
+		}
+		
 	}
 	
 	/**
@@ -534,7 +528,13 @@ public class GE {
 				
 				int sellPrice = checkSellPrice(item);
 				
-				GE.openSellOffer(item, sellPrice-8-sellPriceOffset, 0);
+				if(sellPrice <= 20) {
+					GE.openSellOffer(item, 1, 0);
+				}else {
+					GE.openSellOffer(item, sellPrice-8-sellPriceOffset, 0);
+				}
+				
+				
 				
 				// If there are no free spots
 				if(numFreeSpots() == 0) {
@@ -614,45 +614,25 @@ public class GE {
 	
 	public static void closeGE() {
 		while(true) {
-			GrandExchange.close();
-			Util.randomSleep();
 			if(Interfaces.get(GrandExchange.INTERFACE_EXCHANGE_ID) == null) {
 				return;
 			}
+			Util.log("Closing the GE");
+			GrandExchange.close();
+			Util.randomSleep();
 		}
 	}
-	
- 	private static void waitForNewOfferPage() {
-		while(true) {
-			if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.NEW_OFFER_WINDOW) {
-				Util.randomSleepRange(500,1000);
-				return;
-			}else {
-				Util.randomSleep();
-			}
-		}	
-	}
-	
-	private static void waitForOldOfferPage() {
-		while(true) {
-			if(GrandExchange.getWindowState() != GrandExchange.WINDOW_STATE.OFFER_WINDOW) {
-				Util.randomSleep();
-			}else {
-				Util.randomSleepRange(500,1000);
-				return;
-			}
-		}	
-	}
-	
-	private static void waitForMainPage() {
-		while(true) {
-			if(GrandExchange.getWindowState() != GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
-				Util.randomSleep();
-			}else {
-				Util.randomSleepRange(500,1000);
-				return;
-			}
-		}	
+
+	public static void clickCollectAll() {
+		if(GrandExchange.goToSelectionWindow() == false) {
+			GE.openGE();
+			GrandExchange.goToSelectionWindow();
+		}
+		// Click the collect all button
+		Mouse.moveBox(414,61,492,76);
+		Util.randomSleep();
+		Mouse.click(1);
+		Util.randomSleep();
 	}
 	
 }
