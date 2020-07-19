@@ -58,11 +58,13 @@ public class JrMule extends Script implements Starting, Ending {
 					if(!Trade.tradeTarget(muleTarget)) {
 						// Trade failed
 						Util.log("Trading failed!");
+						Network.updateMuleData();
 						Util.randomSleepRange(3000,4000);
 						Login.logout();
 						Util.randomSleepRange(45000, 60000,false);
 					}else {
 						Util.log("Trading Success!");
+						Network.updateMuleData();
 						Util.randomSleepRange(3000,4000);
 						Login.logout();
 						Util.randomSleepRange(60000, 120000,false);

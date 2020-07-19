@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.Skills;
 import org.tribot.api2007.WorldHopper;
@@ -70,9 +71,9 @@ public class Network {
 	}
 	
 	public static String[] getNextMuleTarget() throws Exception {
-		//String data = getHTML(urlStart+"/post/jrprocessorMuleData");
-		
-		String data = getHTML("http://192.168.2.63"+"/post/jrprocessorMuleData");
+		String data = getHTML(urlStart+"/post/jrprocessorMuleData");
+		// FIXME
+		//String data = getHTML("http://192.168.2.32"+"/post/jrprocessorMuleData");
 		
 		if(data.equalsIgnoreCase("none")) {
 			return null;
@@ -129,6 +130,16 @@ public class Network {
         post(params);
 	}
 	
+	public static void updateMuleData() throws Exception {
+		int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("plat", plat);
+        params.put("type","mule");
+
+        post(params);
+	}
+	
 	public static void announceGE() throws Exception {
 		int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
 		
@@ -157,7 +168,10 @@ public class Network {
 	}
 	
 	private static String post(Map<String,Object> params) throws Exception {
+		
+		//FIXME
 		URL url = new URL (urlStart+"/post/jrprocessor");
+		//URL url = new URL ("http://192.168.2.63"+"/post/jrprocessor");
 		
 		StringBuilder postData = new StringBuilder();
 		for (Map.Entry<String,Object> param : params.entrySet()) {

@@ -1,6 +1,7 @@
 package scripts.util;
 
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Players;
 import org.tribot.api2007.Trading;
@@ -8,7 +9,8 @@ import org.tribot.api2007.WorldHopper;
 import org.tribot.api2007.types.RSPlayer;
 
 public class Trade {
-	final static String MULE_NAME = "Zander Caius";
+	//final static String MULE_NAME = "Zander Caius";
+	final static String MULE_NAME = "MyBonk";
 	
 	
 	public static String getMuleName() {
@@ -53,7 +55,7 @@ public class Trade {
 			
 			RSPlayer mule = Players.find(MULE_NAME)[0];
 			// Trade the mule
-			mule.click("Trade");
+			mule.click("Trade with "+MULE_NAME);
 			Util.randomSleepRange(2000, 4000);
 			
 			if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
@@ -107,7 +109,8 @@ public class Trade {
 			return false;
 		}
 		Util.randomSleep();
-		
+		Camera.setCamera(0, 100);
+		Util.randomSleep();
 		
 		// look for the player
 		Util.log("Trying to find player: "+muleTarget[0]);
@@ -126,19 +129,31 @@ public class Trade {
 		
 		RSPlayer target = Players.find(muleTarget[0])[0];
 		
+		boolean isTrading = false;
 		// Keep trading the player till we get a trade window
-		while(true) {
+		while(!isTrading) {
+			Util.log("Attempting to trade: "+muleTarget[0]);
 			target.click("Trade with "+muleTarget[0]);
 			
 			
-			if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
-				break;
+			for(int i = 0; i < 15; i++) {
+				Util.log("waiting for trade window...");
+				Util.randomSleepRange(1000, 3000);
+				if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
+					if(!Trading.getOpponentName().equalsIgnoreCase(muleTarget[0])) {
+						Util.log("Trading wrong person!");
+						Trading.close();
+						Util.randomSleep();
+						continue;
+					}
+					isTrading = true;
+					break;
+				}
 			}
 			
-			Util.randomSleepRange(10000, 30000);
-			if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
-				break;
-			}
+			
+			
+			
 			
 		}
 		Util.randomSleep();
