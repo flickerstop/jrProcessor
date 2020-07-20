@@ -30,9 +30,11 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	private static String version = "v0.3";
+	private static String version = "v0.4";
 	
 	public static String[] getNextItem() {
+		
+		int fletchingLevel = Skills.getCurrentLevel(Skills.SKILLS.FLETCHING);
 		
 		String url = urlStart+"/get/jrprocessor/";
 		
@@ -46,53 +48,39 @@ public class Network {
 		
 		String methods[] = data.split("\\|");
 		
-		
-		// Loop through all the passed methods
-		for(String method : methods) {
-			Util.log("Trying method: " + method);
-			// 20% chance to skip
-			int randomNumber = ThreadLocalRandom.current().nextInt(0, 101);
-			if(randomNumber <= 50) {
-				Util.log("Method randomly skipped!");
-				continue;
+		int attempt = 0;
+		// Do 5 attempts at getting an item
+		while(attempt <= 5) {
+			// Loop through all the passed methods
+			for(String method : methods) {
+				Util.log("Trying method: " + method);
+				// 20% chance to skip
+				int randomNumber = ThreadLocalRandom.current().nextInt(0, 101);
+				if(randomNumber <= 50) {
+					Util.log("Method randomly skipped!");
+					continue;
+				}
+				
+				if(ItemProcessManager.canDoMethod(method)) {
+					String methodItem1 = method.split(",")[0];
+					// If we can do yew longs but rolled maple, just do yew
+					if(fletchingLevel >= 70 && methodItem1.equalsIgnoreCase("Maple logs")) {
+						return new String[]{"Yew logs","null"};
+					}
+					// If we can do magic longs but rolled maple/yew, just do magic
+					if(fletchingLevel >= 85 && (methodItem1.equalsIgnoreCase("Maple logs")||methodItem1.equalsIgnoreCase("Yew logs"))) {
+						return new String[]{"Magic logs","null"};
+					}
+					
+					return method.split(",");
+				}else {
+					Util.log("Unable to do this method.");
+				}
 			}
-			
-			if(ItemProcessManager.canDoMethod(method)) {
-				return method.split(",");
-			}else {
-				Util.log("Unable to do this method.");
-			}
+			attempt++;
 		}
 		
-		return new String[]{"Grimy ranarr weed","Vial of water"};
-		// Loop till we find a method we can do
-//		while(true) {
-//			// Get a random method from the list
-//			int randomNumber = ThreadLocalRandom.current().nextInt(0, methods.length);
-//			String[] method = methods[randomNumber].split(",");
-//			
-//			Util.log("Trying to make: " + method[0]);
-//			
-//			if(method[0].equalsIgnoreCase("Grimy toadflax") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 34) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy irit leaf") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 45) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy avantoe") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 50) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy kwuarm") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 55) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy snapdragon") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 63) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy cadantine") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 66) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy lantadyme") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 69) {
-//				continue;
-//			}else if(method[0].equalsIgnoreCase("Grimy dwarf weed") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 72) {
-//				continue;
-//			}else {
-//				return methods[randomNumber].split(",");
-//			}
-//		}
+		return new String[]{"Bird nest","null"};
 	}
 	
 	public static String[] getNextMuleTarget() throws Exception {
