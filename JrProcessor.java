@@ -74,6 +74,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 				while(Trade.isMuleNearby()) {
 					Util.log("Mule is Nearby!");
+					try {
+						Network.announceWaitingForMule();
+					} catch (Exception e) {
+						Util.log("Could not announce waiting for mule");
+						e.printStackTrace();
+					}
 					Banking.close();
 					GE.closeGE();
 					Util.randomSleepRange(4000,7000);
@@ -165,6 +171,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			int extraVials = Bank.countVials();
 			Util.log("Amount left over: "+extraVials);
 			
+			Network.updateBotSubTask("Emptying Bank");
+			
 			// Time to Empty bank and sell
 			Util.log("Emptying Bank");
 			Bank.emptyBank();
@@ -177,6 +185,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.log("Opening GE");
 			GE.openGE();
 			
+			Network.updateBotSubTask("Selling Inventory");
 			Util.log("Selling Inventory");
 			GE.sellInventory();
 			
@@ -190,7 +199,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 			
 			// Check if we need to deposit some money
-			if(totalCoins > 1750000) {
+			if(totalCoins > Bank.MAX_GP_ALLOWED) {
+				Network.updateBotSubTask("Converting GP to Plat");
 				Util.log("Converting some coins over to plat");
 				Bank.convertToPlatTokens();
 				Util.randomSleepRange(2000, 4000);
@@ -237,7 +247,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					}
 					
 					
-					
+					Network.updateBotSubTask("PC: "+itemsToBuy[i]);
 					Util.log("Checking High price of: " + itemsToBuy[i]);
 					int itemSellPrice = GE.checkSellPrice(itemsToBuy[i]);
 					Util.log(itemsToBuy[i] + " High price is: " + itemSellPrice);
@@ -298,7 +308,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					Util.log("\n\nBuying: " + itemsToBuy[i]);
 					Util.log("Price: " + buyPrice.get(i));
 					
-					
+					Network.updateBotSubTask("Buying: " + itemsToBuy[i]);
 					// If we're buying vials of water, add the amount of left over herbs
 					if(itemsToBuy[i].equalsIgnoreCase("Vial of water")) {
 						tempAmountToBuy += extraHerbs;
@@ -325,6 +335,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			}
+			
+			Network.updateBotSubTask("");
 			
 			Util.log("All GE interaction done.");
 			
@@ -397,9 +409,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
         	isTradeTime = true;
         }
     }
-
-
-
 
 }
 

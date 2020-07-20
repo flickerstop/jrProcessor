@@ -52,6 +52,7 @@ public class JrMule extends Script implements Starting, Ending {
 				
 				// There's a target
 				if(muleTarget != null) {
+					Network.updateMuleTask("Trading With: "+muleTarget[0]);
 					Util.log("Target found!");
 					Util.log("Name: "+muleTarget[0]);
 					Util.log("World: "+muleTarget[1]);
@@ -59,11 +60,13 @@ public class JrMule extends Script implements Starting, Ending {
 						// Trade failed
 						Util.log("Trading failed!");
 						Network.updateMuleData();
+						Network.updateMuleTask("Trading Failed!");
 						Util.randomSleepRange(3000,4000);
 						Login.logout();
 						Util.randomSleepRange(45000, 60000,false);
 					}else {
 						Util.log("Trading Success!");
+						Network.updateMuleTask("Waiting between trades...");
 						Network.updateMuleData();
 						Util.randomSleepRange(3000,4000);
 						Login.logout();
@@ -71,6 +74,7 @@ public class JrMule extends Script implements Starting, Ending {
 					}
 				}else {
 					Util.log("No target to trade");
+					Network.updateMuleTask("No trades needed");
 					Util.randomSleepRange(145000, 180000,false);
 				}
 			}catch(Exception e) {

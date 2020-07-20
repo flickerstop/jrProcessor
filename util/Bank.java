@@ -20,6 +20,15 @@ import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 
 public class Bank {
+	
+	
+	public final static int GP_TO_USE = 1500000;
+	public final static int MAX_GP_ALLOWED = 2000000;
+	
+	/**
+	 * Attempts to open the bank
+	 * @return false if the bank could not be opened
+	 */
 	public static boolean openBank() {
 		
 		if(Banking.isBankScreenOpen()) {
@@ -74,7 +83,12 @@ public class Bank {
 		return true;
 	}
 	
+	/**
+	 * Empty's all the finished products from the bank
+	 * @return 
+	 */
 	public static boolean emptyBank() {
+		Bank.openBank();
 		// Set to notes
 		Mouse.moveBox(173,312,218,329);
 		Mouse.click(1);
@@ -111,6 +125,10 @@ public class Bank {
 		return true;
 	}
 	
+	/**
+	 * Counts the amount of extra herbs in the bank
+	 * @return int - Amount of herbs
+	 */
 	public static int countHerbs() {
 		
 		int totalCount = 0;
@@ -128,10 +146,18 @@ public class Bank {
 		return totalCount;
 	}
 	
+	/**
+	 * Counts the amount of extra vials in the bank
+	 * @return int - Amount of vials
+	 */
 	public static int countVials() {
 		return Banking.find("Vial of water").length != 0 ? Banking.find("Vial of water")[0].getStack() : 0;
 	}
 	
+	/**
+	 * Grabs the coins from the bank
+	 * @return
+	 */
 	public static boolean grabCoins() {
 		int amount = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
 		
@@ -143,9 +169,13 @@ public class Bank {
 		return true;
 	}
 	
+	/**
+	 * Converts the amount of GP in your inventory/bank to plat tokens
+	 * @return 
+	 */
 	public static boolean convertToPlatTokens() {
 		
-		final int GP_TO_USE = 1000000;
+		
 		
 		// Make sure the GE is closed
 		GE.closeGE();

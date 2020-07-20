@@ -21,6 +21,10 @@ import org.tribot.api2007.types.RSTile;
 public class GE {
 	static int sellMinus = 3;
 	
+	/**
+	 * Attempts to open the GE after walking to the square
+	 * @return true if the GE is open, false if not
+	 */
 	public static boolean openGE() {
 		
 		if(Banking.isBankScreenOpen()) {
@@ -408,10 +412,22 @@ public class GE {
 		}
 	}
 
+	
+	/**
+	 * Checks the cheapest price you can buy an item for
+	 * @param itemToCheck
+	 * @return int - amount of gp to pay
+	 */
 	public static int checkBuyPrice(RSItem itemToCheck) {
 		return GE.checkBuyPrice(itemToCheck,-1);
 	}
 	
+	/**
+	 * Checks the cheapest price you can buy an item for
+	 * @param itemToCheck Item you wish to check
+	 * @param quantity 
+	 * @return int - amount of gp to pay
+	 */
 	public static int checkBuyPrice(RSItem itemToCheck, int quantity) {
 
 		if(!openSellOffer(itemToCheck,1,quantity)){
@@ -472,6 +488,7 @@ public class GE {
 		makeSureInGE();
 		
 		Util.randomSleepRange(1000, 2000);
+		Network.updateBotSubTask("Collecting Sold Items");
 		
 		boolean anythingInGE = false;
 		
@@ -485,7 +502,7 @@ public class GE {
 				anythingInGE = true;
 			}
 		}
-		
+		Util.randomSleepRange(3000, 5000);
 		if(anythingInGE) {
 			// Click the collect all button
 			Mouse.moveBox(414,61,492,76);
@@ -519,6 +536,10 @@ public class GE {
 		while(Inventory.getAll().length > 1) {
 			makeSureInGE();
 			
+			if(sellPriceOffset > 2) {
+				Network.updateBotSubTask("Selling items cheaper");
+			}
+			
 			
 			// Loop through the items and sell them all
 			for(RSItem item : Inventory.getAll()) {
@@ -544,6 +565,7 @@ public class GE {
 			sellPriceOffset *= 5;
 			// If there are no more items to sell, check to see if any offers are taking too long
 			GE.waitThenCancel();
+			Util.randomSleepRange(4000, 6000);
 		}
 		
 		
@@ -580,6 +602,7 @@ public class GE {
 		long endTime = new Date().getTime() + 180000L;
 		
 		Util.log("Waiting for offers to finish or time to run out...");
+		Network.updateBotSubTask("Waiting for offers to finish");
 		
 		while(true) {
 			makeSureInGE();

@@ -6,6 +6,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,7 +17,9 @@ import org.tribot.api2007.Player;
 import org.tribot.api2007.Skills;
 import org.tribot.api2007.WorldHopper;
 import org.tribot.api2007.types.RSItem;
+import org.tribot.script.Script;
 
+import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 
 public class Network {
@@ -24,6 +27,10 @@ public class Network {
 	//private String urlStart = "http://192.168.2.32"; // LAPTOP
 	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
 	private static String urlStart = "http://flickerstop.com"; // BANK
+	
+	private static long startTime = 0L;
+	
+	private static String version = "v0.3";
 	
 	public static String[] getNextItem() {
 		
@@ -40,34 +47,52 @@ public class Network {
 		String methods[] = data.split("\\|");
 		
 		
-		// Loop till we find a method we can do
-		while(true) {
-			// Get a random method from the list
-			int randomNumber = ThreadLocalRandom.current().nextInt(0, methods.length);
-			String[] method = methods[randomNumber].split(",");
+		// Loop through all the passed methods
+		for(String method : methods) {
+			Util.log("Trying method: " + method);
+			// 20% chance to skip
+			int randomNumber = ThreadLocalRandom.current().nextInt(0, 101);
+			if(randomNumber <= 50) {
+				Util.log("Method randomly skipped!");
+				continue;
+			}
 			
-			Util.log("Trying to make: " + method[0]);
-			
-			if(method[0].equalsIgnoreCase("Grimy toadflax") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 34) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy irit leaf") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 45) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy avantoe") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 50) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy kwuarm") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 55) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy snapdragon") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 63) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy cadantine") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 66) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy lantadyme") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 69) {
-				continue;
-			}else if(method[0].equalsIgnoreCase("Grimy dwarf weed") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 72) {
-				continue;
+			if(ItemProcessManager.canDoMethod(method)) {
+				return method.split(",");
 			}else {
-				return methods[randomNumber].split(",");
+				Util.log("Unable to do this method.");
 			}
 		}
+		
+		return new String[]{"Grimy ranarr weed","Vial of water"};
+		// Loop till we find a method we can do
+//		while(true) {
+//			// Get a random method from the list
+//			int randomNumber = ThreadLocalRandom.current().nextInt(0, methods.length);
+//			String[] method = methods[randomNumber].split(",");
+//			
+//			Util.log("Trying to make: " + method[0]);
+//			
+//			if(method[0].equalsIgnoreCase("Grimy toadflax") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 34) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy irit leaf") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 45) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy avantoe") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 50) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy kwuarm") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 55) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy snapdragon") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 63) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy cadantine") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 66) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy lantadyme") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 69) {
+//				continue;
+//			}else if(method[0].equalsIgnoreCase("Grimy dwarf weed") && Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) < 72) {
+//				continue;
+//			}else {
+//				return methods[randomNumber].split(",");
+//			}
+//		}
 	}
 	
 	public static String[] getNextMuleTarget() throws Exception {
@@ -110,6 +135,12 @@ public class Network {
 		int coins = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
 		int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
 		
+		int herbloreLevel = Skills.getCurrentLevel(Skills.SKILLS.HERBLORE);
+		int fletchingLevel = Skills.getCurrentLevel(Skills.SKILLS.FLETCHING);
+		
+		String position = "x:"+Player.getRSPlayer().getPosition().getX()+" y:"+Player.getRSPlayer().getPosition().getY();
+				
+		
 		
 		
         Map<String,Object> params = new LinkedHashMap<>();
@@ -125,6 +156,11 @@ public class Network {
         params.put("totalCoins",totalCashStack);
         params.put("totalBought",totalBought);
         params.put("type","update");
+        params.put("version",version);
+        params.put("herblore", herbloreLevel);
+        params.put("fletching", fletchingLevel);
+        params.put("position", position);
+        params.put("startTime", startTime);
         params.put("world", WorldHopper.getWorld());
 
         post(params);
@@ -140,6 +176,40 @@ public class Network {
         post(params);
 	}
 	
+	public static void updateMuleTask(String task) throws Exception {
+		int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("type","muleTask");
+        params.put("task",task);
+
+        post(params);
+	}
+	
+	public static void updateBotSubTask(String task){
+		Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("type","taskUpdate");
+        params.put("task", task);
+
+        try {
+			post(params);
+		} catch (Exception e) {
+			Util.log("Error updating sub task");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updatePosition() throws Exception {
+		String position = "x:"+Player.getRSPlayer().getPosition().getX()+" y:"+Player.getRSPlayer().getPosition().getY();
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("position", position);
+        params.put("type","position");
+
+        post(params);
+	}
+	
 	public static void announceGE() throws Exception {
 		int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
 		
@@ -147,6 +217,17 @@ public class Network {
         params.put("name", Player.getRSPlayer().getName());
         params.put("type","ge");
         params.put("plat", plat);
+
+        post(params);
+	}
+	
+	public static void announceWaitingForMule() throws Exception {
+		//int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
+		
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("type","waitingForMule");
+        //params.put("plat", plat);
 
         post(params);
 	}
@@ -201,6 +282,9 @@ public class Network {
 	}
 	
 	public static void init() {
+		
+		startTime = new Date().getTime();
+		
 		Util.log(Player.getRSPlayer().getName());
 		if(Player.getRSPlayer().getName().equalsIgnoreCase("Mathew Kenne") || Player.getRSPlayer().getName().equalsIgnoreCase("Zander Caius")) {
 			Util.log("SET SERVER TO LOCAL");

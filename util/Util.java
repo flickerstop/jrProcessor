@@ -1,5 +1,6 @@
 package scripts.util;
 
+import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.General;
@@ -12,6 +13,9 @@ import org.tribot.api2007.types.RSTile;
 
 public class Util{
 
+	
+	private static long lastPositionUpdate = new Date().getTime() + 30000L;
+	
 	/**
 	 * Sleeps for a random number of milliseconds 
 	 */
@@ -42,8 +46,23 @@ public class Util{
 	 * @param max Maximum amount of milliseconds
 	 */
 	public static void randomSleepRange(int min, int max) {
+		
+		// Make sure we're logged in
 		if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
 			Login.login();
+		}
+		
+		// Update the position
+		if(new Date().getTime() >= lastPositionUpdate) {
+			// Update the position
+			try {
+				Network.updatePosition();
+			} catch (Exception e) {
+				Util.log("Unable to update position");
+				e.printStackTrace();
+			}
+			
+			lastPositionUpdate = new Date().getTime() + 30000L;
 		}
 		
 		int sleepTime = ThreadLocalRandom.current().nextInt(min, max+1);
