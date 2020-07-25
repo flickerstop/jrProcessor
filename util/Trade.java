@@ -2,6 +2,8 @@ package scripts.util;
 
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
+import org.tribot.api2007.Interfaces;
+import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Players;
 import org.tribot.api2007.Trading;
@@ -29,13 +31,19 @@ public class Trade {
 		Bank.openBank();
 		Util.randomSleep();
 		
-		Banking.depositAll();
-		Util.randomSleep();
 		
-		Util.log("Taking out plat tokens");
-		// Take out plat tokens
-		Banking.withdraw(0, "Platinum token");
-		Util.randomSleep();
+		
+		
+		
+		while(Banking.find("Platinum token").length != 0) {
+			Banking.depositAll();
+			Util.randomSleep();
+			// Take out plat tokens
+			Util.log("Taking out plat tokens");
+			Banking.withdraw(0, "Platinum token");
+			Util.randomSleep();
+		}
+		
 		
 		Banking.close();
 		Util.randomSleep();
@@ -46,6 +54,10 @@ public class Trade {
 	public static void tradeItems() {
 		// Loop till we trade
 		while(true) {
+			
+			if(Trade.isTradeOpen()) {
+				break;
+			}
 			
 			// Find the mule
 			if(Players.find(MULE_NAME).length == 0) {
@@ -58,9 +70,6 @@ public class Trade {
 			mule.click("Trade with "+MULE_NAME);
 			Util.randomSleepRange(2000, 4000);
 			
-			if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
-				break;
-			}
 		}
 		
 		
@@ -72,8 +81,12 @@ public class Trade {
 			return;
 		}
 		
-		Trading.offer(0, "Platinum token");
-		Util.randomSleep();
+		
+		while(Inventory.find("Platinum token").length != 0){
+			Trading.offer(0, "Platinum token");
+			Util.randomSleepRange(4000, 7000);
+		}
+		
 		
 		// Loop till accept
 		while(true) {
@@ -100,7 +113,7 @@ public class Trade {
 			Util.log("Failed to hop worlds");
 			return false;
 		}
-		Util.randomSleepRange(2000, 4000);;
+		Util.randomSleepRange(2000, 4000);
 		
 		Util.log("Logging in...");
 		// log in
@@ -122,17 +135,32 @@ public class Trade {
 				break;
 			}
 		}
+		// No player found
 		if(Players.find(muleTarget[0]).length == 0) {
 			Util.log("Player not found! Quitting...");
 			return false;
 		}
 		
-		RSPlayer target = Players.find(muleTarget[0])[0];
+		// Walk to the spot to trade
+		Util.walkMuleToTrade();
+		Util.randomSleepRange(2000, 4000);
 		
+		// Target the palyer
+		RSPlayer target = Players.find(muleTarget[0])[0];
 		boolean isTrading = false;
 		// Keep trading the player till we get a trade window
 		while(!isTrading) {
 			Util.log("Attempting to trade: "+muleTarget[0]);
+			Interfaces.closeAll();
+
+			// If the player isn't in the correct spot, wait
+			if(target.getPosition().getY() != 3489) {
+				Util.log("Player not standing in correct spot");
+				Util.randomSleepRange(3000, 5000);
+				continue;
+			}
+			
+			// Trade the player
 			target.click("Trade with "+muleTarget[0]);
 			
 			
@@ -174,5 +202,47 @@ public class Trade {
 		
 		
 		return true;
+	}
+	
+	public static void tradeMule() {
+		// look for the player
+		Util.log("Trying to find mule: "+MULE_NAME);
+		Network.updateBotSubTask("Trying to find mule: "+MULE_NAME);
+		for(int i = 0; i< 15; i++) {
+			if(Players.find(MULE_NAME).length == 0) {
+				Util.log("Player not found! Attempt # "+i);
+				Util.randomSleepRange(2000, 6000);
+			}else {
+				break;
+			}
+		}
+		// No player found
+		if(Players.find(MULE_NAME).length == 0) {
+			Util.log("Player not found! Quitting...");
+			return;
+		}
+		
+		Util.randomSleepRange(2000, 4000);
+		
+		// Target the player
+		RSPlayer target = Players.find(MULE_NAME)[0];
+		
+		Util.log("Attempting to trade: "+MULE_NAME);
+		Interfaces.closeAll();
+
+		Util.randomSleepRange(2000, 4000);
+		// Trade the player
+		Network.updateBotSubTask("Trading: "+MULE_NAME);
+		target.click("Trade with "+MULE_NAME);
+			
+			
+		Util.randomSleep();
+	}
+	
+	public static boolean isTradeOpen() {
+		if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
+			return true;
+		}
+		return false;
 	}
 }

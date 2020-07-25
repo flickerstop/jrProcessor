@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Game;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
@@ -248,6 +249,13 @@ public class ProcessingObject {
 							item1Array[i+i2].click("clean");
 							//Util.randomSleepRange(20,40);
 							numberClicked++;
+							
+							// If item is selected
+							if(Game.getItemSelectionState() == 1) {
+								// click the first item in the inventory
+								Inventory.getAll()[0].click();
+								Util.randomSleep();
+							}
 						}
 						
 						break;
@@ -257,6 +265,13 @@ public class ProcessingObject {
 							item1Array[i+i2].click("clean");
 							//Util.randomSleepRange(20,40);
 							numberClicked++;
+							
+							// If item is selected
+							if(Game.getItemSelectionState() == 1) {
+								// click the first item in the inventory
+								Inventory.getAll()[0].click();
+								Util.randomSleep();
+							}
 						}
 						i+= 8;
 						
@@ -265,6 +280,13 @@ public class ProcessingObject {
 							item1Array[i-i2].click("clean");
 							//Util.randomSleepRange(20,40);
 							numberClicked++;
+							
+							// If item is selected
+							if(Game.getItemSelectionState() == 1) {
+								// click the first item in the inventory
+								Inventory.getAll()[0].click();
+								Util.randomSleep();
+							}
 						}
 					}
 					

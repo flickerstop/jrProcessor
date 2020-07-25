@@ -30,7 +30,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	private static String version = "v0.4";
+	private static String version = "v0.11";
 	
 	public static String[] getNextItem() {
 		
@@ -91,6 +91,8 @@ public class Network {
 		if(data.equalsIgnoreCase("none")) {
 			return null;
 		}
+		
+		Util.log("Target data: " + data);
 		
 		String name = data.split(",")[0].replaceAll("[^\\sa-zA-Z0-9 ]", "");
 		String world = data.split(",")[1];
@@ -165,7 +167,7 @@ public class Network {
 	}
 	
 	public static void updateMuleTask(String task) throws Exception {
-		int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
+		//int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", Player.getRSPlayer().getName());
         params.put("type","muleTask");

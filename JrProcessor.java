@@ -1,5 +1,6 @@
 package scripts;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.tribot.api.General;
 import org.tribot.api2007.Banking;
@@ -10,6 +11,7 @@ import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.Breaking;
 import org.tribot.script.interfaces.Ending;
 import org.tribot.script.interfaces.MessageListening07;
+import org.tribot.script.interfaces.Pausing;
 import org.tribot.script.interfaces.PreBreaking;
 import org.tribot.script.interfaces.Starting;
 
@@ -40,7 +42,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 //		Banking.setWithdrawQuantity(Banking.WITHDRAW_QUANTITY.WITHDRAW_X);
 //		Banking.depositAll();
 		
-		
+		//TODO THIS IS NEW, if anything fucks it blame this
+		this.setLoginBotState(false);
 	}
  
 	
@@ -71,7 +74,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				isReadyToBreak = false;
 				
 				
-				
+				// If the mule is nearby
 				while(Trade.isMuleNearby()) {
 					Util.log("Mule is Nearby!");
 					try {
@@ -80,18 +83,45 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 						Util.log("Could not announce waiting for mule");
 						e.printStackTrace();
 					}
-					Banking.close();
 					GE.closeGE();
-					Util.randomSleepRange(4000,7000);
 					
-					if(isTradeTime) {
-						Trade.getReadyForTrade();
+					// Take out the plat from the bank
+					Network.updateBotSubTask("Taking out plat");
+					Trade.getReadyForTrade();
+					Util.randomSleepRange(2000, 3000);
+					Banking.close();
+					
+					// Walk to the trade spot
+					Util.randomSleepRange(2000,4000);
+					Network.updateBotSubTask("Walking to spot");
+					Util.walkBotToTrade();
+					
+					long waitStartTime = new Date().getTime();
+					// Wait until mule trades the bot
+					while(!isTradeTime && Trade.isMuleNearby()) {
+						Network.updateBotSubTask("Waiting for mule to trade");
+						Util.randomSleepRange(4000,7000);
+						Util.walkBotToTrade();
 						
-						Trade.tradeItems();
-						
-						Util.randomSleepRange(2000, 3000);
-						isTradeTime = false;
+						if((new Date().getTime()) >= (waitStartTime  + 20000L)) {
+							waitStartTime = new Date().getTime();
+							Trade.tradeMule();
+							Util.randomSleepRange(4000,7000);
+							if(Trade.isTradeOpen()) {
+								isTradeTime = true;
+							}
+						}
 					}
+					
+					// Trade the plat over
+					Network.updateBotSubTask("Trading Mule");
+					Trade.tradeItems();
+					
+					// Done trading
+					Util.randomSleepRange(2000, 3000);
+					isTradeTime = false;
+					Network.updateBotSubTask("Waiting 30 seconds after trade");
+					Util.randomSleepRange(20000, 45000);
 				}
 				
 				
@@ -199,7 +229,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 			
 			// Check if we need to deposit some money
-			if(totalCoins > Bank.MAX_GP_ALLOWED) {
+			if(totalCoins > Bank.MAX_GP_ALLOWED+500000) {
 				Network.updateBotSubTask("Converting GP to Plat");
 				Util.log("Converting some coins over to plat");
 				Bank.convertToPlatTokens();
@@ -409,6 +439,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
         	isTradeTime = true;
         }
     }
+
 
 }
 

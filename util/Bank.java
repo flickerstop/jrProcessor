@@ -9,6 +9,7 @@ import org.tribot.api2007.Game;
 import org.tribot.api2007.GrandExchange;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
+import org.tribot.api2007.Login;
 import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
@@ -22,7 +23,7 @@ import scripts.objects.ProcessingObject;
 public class Bank {
 	
 	
-	public final static int GP_TO_USE = 1500000;
+	public final static int GP_TO_USE = 1000000;
 	public final static int MAX_GP_ALLOWED = 2000000;
 	
 	/**
@@ -79,6 +80,12 @@ public class Bank {
 			
 		}
 		
+		// Check if "member's object"
+		if(Banking.find("Members object").length != 0) {
+			Network.updateBotSubTask("NO MEMBERSHIP!");
+			Login.logout();
+			Util.randomSleepRange(1000*60*60*24, 1000*60*60*25, false);
+		}
 		
 		return true;
 	}
@@ -89,6 +96,9 @@ public class Bank {
 	 */
 	public static boolean emptyBank() {
 		Bank.openBank();
+		Util.randomSleep();
+		Banking.depositAll();
+		Util.randomSleep();
 		// Set to notes
 		Mouse.moveBox(173,312,218,329);
 		Mouse.click(1);
@@ -106,6 +116,56 @@ public class Bank {
 			
 			if(amount > 0) {
 				Banking.withdraw(0, obj.result);
+				Util.randomSleep();
+			}
+		}
+		
+		Util.log("Grabbing coins");
+		Bank.grabCoins();
+		Util.randomSleep();
+		
+		// Check to make sure coins are in inventory
+		if(Inventory.find("Coins").length == 0 || Banking.find("Coins").length != 0) {
+			return emptyBank();
+		}
+		
+		Util.log("Coins in inventory: "+ Inventory.find("Coins")[0].getStack());
+		
+		
+		return true;
+	}
+	
+	public static boolean emptyBank(boolean grabAllItems) {
+		Bank.openBank();
+		Util.randomSleep();
+		Banking.depositAll();
+		Util.randomSleep();
+		// Set to notes
+		Mouse.moveBox(173,312,218,329);
+		Mouse.click(1);
+		Util.randomSleep();
+		
+		Util.log("Grabbing finished products");
+		for(ProcessingObject obj : ItemProcessManager.getListOfProcesses()) {
+			// Check if more than 1 in the bank
+			int amount = Banking.find(obj.result).length != 0 ? Banking.find(obj.result)[0].getStack() : 0;
+			
+			if(amount > 0) {
+				Banking.withdraw(0, obj.result);
+				Util.randomSleep();
+			}
+			
+			// Check if more than 1 in the bank
+			amount = Banking.find(obj.item1).length != 0 ? Banking.find(obj.item1)[0].getStack() : 0;
+			if(amount > 0) {
+				Banking.withdraw(0, obj.item1);
+				Util.randomSleep();
+			}
+			
+			// Check if more than 1 in the bank
+			amount = Banking.find(obj.item2).length != 0 ? Banking.find(obj.item2)[0].getStack() : 0;
+			if(amount > 0) {
+				Banking.withdraw(0, obj.item2);
 				Util.randomSleep();
 			}
 		}
@@ -257,4 +317,5 @@ public class Bank {
 		
 		return true;
 	}
+
 }

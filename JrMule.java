@@ -30,7 +30,7 @@ public class JrMule extends Script implements Starting, Ending {
 
 	@Override
 	public void run() {
-		
+		Util.setMule();
 		this.setLoginBotState(false);
 		while(true) {
 			
