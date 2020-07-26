@@ -38,11 +38,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	
 	@Override
 	public void onStart() {
-//		Banking.openBank();
-//		Banking.setWithdrawQuantity(Banking.WITHDRAW_QUANTITY.WITHDRAW_X);
-//		Banking.depositAll();
-		
-		//TODO THIS IS NEW, if anything fucks it blame this
 		this.setLoginBotState(false);
 	}
  

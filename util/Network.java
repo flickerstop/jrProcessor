@@ -30,7 +30,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	private static String version = "v0.11";
+	private static String version = "v1.00";
 	
 	public static String[] getNextItem() {
 		

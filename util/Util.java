@@ -240,4 +240,12 @@ public class Util{
 	public static void setMule() {
 		isMule = true;
 	}
+	
+	public static long time() {
+		return new Date().getTime();
+	}
+	
+	public static long secondsLater(int numberOfSeconds) {
+		return new Date().getTime() + Long.valueOf(numberOfSeconds);
+	}
 }
