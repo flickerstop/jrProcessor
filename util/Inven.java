@@ -10,4 +10,11 @@ public class Inven {
 			return true;
 		}
 	}
+	
+	public static int countCoins() {
+		if(!hasCoins()) {
+			return -1;
+		}
+		return Inventory.find("Coins")[0].getStack();
+	}
 }

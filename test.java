@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api2007.GrandExchange;
+import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.types.RSGEOffer;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
@@ -20,6 +21,7 @@ import scripts.util.Bank;
 import scripts.util.Network;
 import scripts.util.Util;
 
+// Test
 
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "JR TESTER")
 public class test extends Script implements Starting, MessageListening07 {
@@ -33,9 +35,7 @@ public class test extends Script implements Starting, MessageListening07 {
 
 	@Override
 	public void run() {
-		while(true) {
-			Util.randomSleep();
-		}
+		Util.log(Util.getMembershipLeft());
 		
 	}
 	

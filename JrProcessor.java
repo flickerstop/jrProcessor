@@ -1,6 +1,8 @@
 package scripts;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 
 import org.tribot.api.General;
 import org.tribot.api2007.Banking;
@@ -28,13 +30,40 @@ import scripts.util.Util;
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrProcessor")
 public class JrProcessor extends Script implements Starting, Breaking, PreBreaking, Ending, MessageListening07 {
 	
-	private boolean isReadyToBreak = false;
-	private boolean isBreaking = false;
+	private static boolean isReadyToBreak = false;
+	private static boolean isBreaking = false;
+	private static boolean isTradeTime = false;
+	private static int totalCashStack = 0;
+	private static int totalBought = 0;
 	
-	private boolean isTradeTime = false;
 	
-	private int totalCashStack = 0;
-	private int totalBought = 0;
+	private static final int MIN_OFFSET = 10;
+	private static int offset = MIN_OFFSET;
+	
+	private static final int MAX_ITEMS = 30;
+	
+	public static final int MIN_COINS = 400000;
+	
+	public static boolean isRunning = true;
+	public static ProcessingObject currentProcess = null;
+	public static LinkedList<Integer> stateOrder = new LinkedList<Integer>();
+	
+	private static STATUS status = STATUS.NONE;
+	
+	public static enum STATUS {
+		NONE,
+		SUCCESS,
+	    FAILED_CLOSING,
+	    SQUARE_NOT_FOUND,
+	    NPC_NOT_FOUND,
+	    GE_NOT_OPEN,
+	    NEW_OFFER_ERROR,
+	    NO_FREE_OFFER,
+	    NO_INVENTORY_ITEM,
+	    ITEM_IN_GE,
+	    GENERAL_FAIL,
+	    TOOK_TOO_LONG
+	  }
 	
 	@Override
 	public void onStart() {
@@ -44,334 +73,328 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	
 	@Override
 	public void run() {
+		//Util.log("run(): ");
 		Util.clearConsole();
+		
+		Util.log("run(): suspending antiban");
 		suspendAntiban();
 		
 		if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
+			Util.log("run(): logging in");
 			Login.login();
 		}
-		
+		Util.log("run(): network init");
 		Network.init();
 		
-		// Check the ge 
-		GE.openGE();
-		GE.collectAndCancel();
+		
+		// Starting order
+		stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
 		
 		
-		while(true) {
-			while(true) {
-				// we can break now
-				isReadyToBreak = true;
-				Util.randomSleepRange(1000,2000);
-				while(isBreaking) {
-					Util.randomSleepRange(10000,20000);
+		
+		while(isRunning) {
+			
+			// Check if we need a new state path
+			if(stateOrder.size() == 0) {
+				stateOrder.addAll(Arrays.asList(2,10,14,15));
+			}
+
+			
+			// Get the next state
+			int state = stateOrder.removeFirst();
+			
+			switch(state) {
+			////////////////////////////////////////////////////////////////
+			case 1: // Open GE
+				if(!GE.openGE()) {
+					Util.log("run(): Failed opening GE");
 				}
-				isReadyToBreak = false;
-				
-				
-				// If the mule is nearby
-				while(Trade.isMuleNearby()) {
-					Util.log("Mule is Nearby!");
-					try {
-						Network.announceWaitingForMule();
-					} catch (Exception e) {
-						Util.log("Could not announce waiting for mule");
-						e.printStackTrace();
-					}
-					GE.closeGE();
-					
-					// Take out the plat from the bank
-					Network.updateBotSubTask("Taking out plat");
-					Trade.getReadyForTrade();
-					Util.randomSleepRange(2000, 3000);
-					Banking.close();
-					
-					// Walk to the trade spot
-					Util.randomSleepRange(2000,4000);
-					Network.updateBotSubTask("Walking to spot");
-					Util.walkBotToTrade();
-					
-					long waitStartTime = new Date().getTime();
-					// Wait until mule trades the bot
-					while(!isTradeTime && Trade.isMuleNearby()) {
-						Network.updateBotSubTask("Waiting for mule to trade");
-						Util.randomSleepRange(4000,7000);
-						Util.walkBotToTrade();
-						
-						if((new Date().getTime()) >= (waitStartTime  + 20000L)) {
-							waitStartTime = new Date().getTime();
-							Trade.tradeMule();
-							Util.randomSleepRange(4000,7000);
-							if(Trade.isTradeOpen()) {
-								isTradeTime = true;
-							}
+				break;
+			////////////////////////////////////////////////////////////////
+			case 2: // Close GE
+				if(!GE.closeGE()) {
+					Util.log("run(): Failed closing GE");
+				}
+				break;
+			////////////////////////////////////////////////////////////////
+			case 3: // sell inventory
+				if(!GE.sellInventory()) {
+					// If the issue was there was no items in the inventory
+					if(status == STATUS.NO_INVENTORY_ITEM) {
+						// But there are more than 500k
+						if(Inven.countCoins() > 500000) {
+							// Call it a success
+							status = STATUS.SUCCESS;
 						}
 					}
-					
-					// Trade the plat over
-					Network.updateBotSubTask("Trading Mule");
-					Trade.tradeItems();
-					
-					// Done trading
-					Util.randomSleepRange(2000, 3000);
-					isTradeTime = false;
-					Network.updateBotSubTask("Waiting 30 seconds after trade");
-					Util.randomSleepRange(20000, 45000);
 				}
-				
-				
-				// Open the bank
-				Bank.openBank();
-	
-				Banking.depositAll();
-				
-				// Deposit everything in the bank
-				Util.randomSleepRange(2000, 3000);
-				
-				// Search the bank for what items to process
-				ProcessingObject process = ItemProcessManager.searchBank();
-				
-				
-				
-				
-				// Check if no items to make
-				if(process == null) {
-					Util.randomSleepRange(1000,2000);
-					break;
-				}
-				
-				// Grab the data for the API
-				try {
-					Network.updateAPI(process,totalCashStack,totalBought);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				break;
+			////////////////////////////////////////////////////////////////
+			case 4: // cancel and collect items in GE
+				if(!GE.collectAndCancel()) {
 					
 				}
-				
-				Util.log("Creating:"+process.result);
-				
-				
-				// Grab the items from the bank
-				process.inBank();
-				
-				
-				Banking.close();
-				Util.randomSleep();
-				
-				if(Banking.isBankScreenOpen()) {
-					Banking.close();
-				}
-				
-				process.inInventory();
-				
-			}
-			
-			// we can break now
-			isReadyToBreak = true;
-			Util.randomSleepRange(1000,2000);
-			while(isBreaking) {
-				Util.randomSleepRange(10000,20000);
-			}
-			isReadyToBreak = false;
-			
-			
-			Bank.openBank();
-			Util.randomSleepRange(1000,2000);
-			
-			try {
-				Network.announceGE();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
-			
-			Util.log("Counting left over herbs");
-			int extraHerbs = Bank.countHerbs();
-			Util.log("Amount left over: "+extraHerbs);
-			
-			Util.log("Counting left over vials");
-			int extraVials = Bank.countVials();
-			Util.log("Amount left over: "+extraVials);
-			
-			Network.updateBotSubTask("Emptying Bank");
-			
-			// Time to Empty bank and sell
-			Util.log("Emptying Bank");
-			Bank.emptyBank();
-			Util.randomSleep();
-			
-			Util.log("Closing Bank");
-			Banking.close();
-			Util.randomSleep();
-			
-			Util.log("Opening GE");
-			GE.openGE();
-			
-			Network.updateBotSubTask("Selling Inventory");
-			Util.log("Selling Inventory");
-			GE.sellInventory();
-			
-			// Buy the items needed
-			String itemsToBuy[] = Network.getNextItem();
-			ArrayList<Integer> buyPrice = new ArrayList<Integer>();
-			
-			int totalCoins = Inventory.find("Coins")[0].getStack();
-			totalCashStack = totalCoins;
-			
-			
-			
-			// Check if we need to deposit some money
-			if(totalCoins > Bank.MAX_GP_ALLOWED+500000) {
-				Network.updateBotSubTask("Converting GP to Plat");
-				Util.log("Converting some coins over to plat");
-				Bank.convertToPlatTokens();
-				Util.randomSleepRange(2000, 4000);
-				GE.openGE();
-			}
-			
-			
-			// if we have no coins
-			if(!Inven.hasCoins() || Trade.isMuleNearby()) {
-				continue;
-			}
-			
-			
-			int totalPrice = 0;
-			Util.log("\nChecking Prices of items to buy...");
-			try {
-				for(int i = 0; i <= itemsToBuy.length-1; i++) {
-					Util.log("Item # "+i+": "+itemsToBuy[i]);
-				}
-				
-				
-				// Get the price to buy the items at
-				for(int i = 0; i <= itemsToBuy.length-1; i++) {
-					
-					// Skip null items
-					if(itemsToBuy[i].equalsIgnoreCase("null")) {
-						continue;
-					}
-					
-					// Manually set prices for items
-					if(itemsToBuy[i].equalsIgnoreCase("Vial of water")) {
+				break;
+			////////////////////////////////////////////////////////////////
+            case 5: // Buy all the new items needed
+            	Util.log("run(): Buying next items for processing");
+                String[] nextItems = Network.getNextItem();
+                ArrayList<Integer> buyPrice = new ArrayList<Integer>();
+                
+                int totalPrice = 0;
+                int amountToBuy = 0;
+                
+                boolean isError = false;
+                
+                int totalCoins = 0;
+                
+                // Check if there are coins in the inventory
+                if(Inven.hasCoins()) {
+                	totalCoins = Inven.countCoins();
+                	
+                	if(totalCoins < MIN_COINS) {
+                		Util.log("run(): Not enough coins in inventory");
+                		
+                		// Not enough money but there is herbs in the bank
+                		if(Bank.herbsInBank >= 1 || Bank.vialsInBank == 0) {
+                			Util.log("run(): Buying only vials of water");
+                			
+                			int vialsToBuy = (Bank.herbsInBank * 15) > totalCoins ? totalCoins/15:Bank.herbsInBank;
+                			
+                			GE.openBuyOffer("Vial of water", 15, vialsToBuy);
+                		}
+                		
+                		break;
+                	}
+                }
+            	
+                // Get the prices to buy the items at
+                for(String item : nextItems) {
+                	Util.log("run(): Checking price of: "+item);
+                	// check if it is any predefined prices
+                	if(item.equalsIgnoreCase("Vial of water")) {
 						buyPrice.add(15);
 						totalPrice += 15;
 						continue;
-					}else if(itemsToBuy[i].equalsIgnoreCase("Maple logs")) {
+					}else if(item.equalsIgnoreCase("Maple logs")) {
 						buyPrice.add(25);
 						totalPrice += 25;
 						continue;
 					}
+                	
+                	
+                	
+                	int lowHigh[] = GE.findLowHigh(item);
+                	
+                	// check for error
+                	if(lowHigh == null) {
+                		Util.log("run(): Failed getting low/high for: "+ item);
+                		isError = true;
+                		break;
+                	}
+                	
+                	// get the buy/sell price
+                	int low = lowHigh[0];
+                	int high = lowHigh[1];
+                	
+                	// Check if either are below 100
+                	if(low < 100 || high < 100) {
+                		buyPrice.add(500);
+                		totalPrice += 500;
+                	}else {
+                		buyPrice.add(high+offset);
+                		totalPrice += high+offset;
+                	}
+                }
+                
+                // if there is no error
+                if(!isError) {
+                	
+                	amountToBuy = (int)Math.floor((totalCoins-30000)/totalPrice);
+                	
+                	if(amountToBuy > MAX_ITEMS) {
+    					amountToBuy = MAX_ITEMS;
+    				}
+                	
+                	Util.log("run(): Buying "+amountToBuy+" sets");
+                	
+                	// buy the items
+                	for(int i = 0; i <= nextItems.length-1; i++) {
+                		
+                		int tempAmountToBuy = amountToBuy;
+                		
+                		// Check if we need more/less vials of water
+                		if(nextItems[i].equalsIgnoreCase("Vial of water")) {
+    						tempAmountToBuy += Bank.herbsInBank;
+    						
+    						// If we already have this many vials in the bank
+    						if((tempAmountToBuy-Bank.vialsInBank) <= 0) {
+    							Util.log("run(): Skipped buying vials, enough in bank");
+    							continue;
+    						}else {
+    							// If we only need a bit more vials, buy that amount
+    							tempAmountToBuy -= Bank.vialsInBank;
+    						}
+    					}
+                		
+                		if(!GE.openBuyOffer(nextItems[i], buyPrice.get(i), tempAmountToBuy)) {
+                			Util.log("run(): error buying: "+nextItems[i]);
+                		}
+                		
+                	}
+                	// If everything went good, wait and collect
+                	if(status == STATUS.SUCCESS) {
+                		stateOrder.addFirst(6);
+                	}else {
+                		stateOrder.addFirst(4);
+                	}
+                	
+                }
+            	
+				break;
+
+
+            ////////////////////////////////////////////////////////////////
+            case 6:
+            	if(!GE.waitThenCancel()) {
+            		if(status == STATUS.GE_NOT_OPEN) {
+            			stateOrder.addFirst(1);
+            		}
+            		stateOrder.addFirst(4);
+            	}
+            	break;
+            ////////////////////////////////////////////////////////////////	
+			////////////////////////////////////////////////////////////////
+			case 10: // open bank
+				if(!Bank.openBank()) {
+					Util.log("run(): Unable to open bank");
+				}
+				break;
+			////////////////////////////////////////////////////////////////
+			case 11: // close bank
+				if(!Bank.closeBank()) {
+					Util.log("run(): Unable to close bank");
+				}
+				break;
+			////////////////////////////////////////////////////////////////
+			case 12: // empty bank
+				if(!Bank.emptyBank()) {
+					Util.log("run(): Unable to empty bank");
+				}
+				break;
+			////////////////////////////////////////////////////////////////
+			case 13: // Count herbs
+				Util.log("run(): Counting herbs/vials");
+				Bank.countHerbs();
+				Bank.countVials();
+				break;
+			////////////////////////////////////////////////////////////////
+			case 14: // Deposit all
+				Util.log("run(): Depositing all items");
+				Bank.depositAll();
+				break;
+			////////////////////////////////////////////////////////////////
+				
+			case 15:
+				boolean hasNoTask = true;
+				// Loop 5 times to make sure no items are currently being transfered
+				for(int i = 0; i < 3; i++) {
+					// Search the bank for what items to process
+					currentProcess = ItemProcessManager.searchBank();
 					
-					// if we have no coins
-					if(!Inven.hasCoins() || Trade.isMuleNearby()) {
-						continue;
-					}
-					
-					
-					Network.updateBotSubTask("PC: "+itemsToBuy[i]);
-					Util.log("Checking High price of: " + itemsToBuy[i]);
-					int itemSellPrice = GE.checkSellPrice(itemsToBuy[i]);
-					Util.log(itemsToBuy[i] + " High price is: " + itemSellPrice);
-					// If under 100gp, dont bother trying to min/max the price
-					if(itemSellPrice > 100) {
-						Util.randomSleepRange(2000, 4000);
-						Util.log("Checking Low price of: " + itemsToBuy[i]);
-						int itemBuyPrice = GE.checkBuyPrice(Inventory.find(itemsToBuy[i])[0]);
-						Util.log(itemsToBuy[i] + " Low price is: " + itemSellPrice);
+					// Check if no items to make
+					if(currentProcess != null) {
+						hasNoTask = false;
+						int amountOfActions = Bank.maxNumberOfInvens(currentProcess);
 						
-						int itemPrice = (itemSellPrice + itemBuyPrice)/2;
-						
-						// if the difference between buy/sell is only like 15 coins, insta buy
-						if(Math.abs(itemSellPrice-itemBuyPrice) <= 15) {
-							itemPrice = itemSellPrice+10;
-							totalPrice += itemPrice;
-							buyPrice.add(itemPrice);
-						}else {
-							totalPrice += itemPrice;
-							buyPrice.add(itemPrice);
+						if(amountOfActions < 5) {
+							stateOrder.addAll(Arrays.asList(14,21,11,22,10));
+							break;
 						}
 						
-						
+						for(int i2 = 0; i2 < amountOfActions; i2++) {
+							stateOrder.addAll(Arrays.asList(14,21,11,22,10));
+						}
+						break;
 					}else {
-						Util.log(itemsToBuy[i] + " is very cheap, we'll insta buy it.");
-						int itemPrice = itemSellPrice+10;
-						totalPrice += itemPrice;
-						buyPrice.add(itemPrice);
+						Util.randomSleepRange(1000,2000);
 					}
-					
-					
-					Util.randomSleep();
+				}
+				if(hasNoTask) {
+					// Only if there are no processes to do after 5 checks
+					stateOrder.addAll(Arrays.asList(10,12,13,11,1,3,4,5));
 				}
 				
-				// Calculate how many to buy
-				int amountToBuy = (totalCoins - 30000)/totalPrice;
 				
-				// cap at 10k
-				if(amountToBuy > 1000) {
-					amountToBuy = 1000;
+				break;
+		
+			////////////////////////////////////////////////////////////////
+							
+			////////////////////////////////////////////////////////////////
+			case 20: // Check bank for next process
+				currentProcess = ItemProcessManager.searchBank();
+				if(currentProcess == null) {
+					Util.log("run(): No item to process");
 				}
-				
-				totalBought = amountToBuy;
-				Util.log("\nBuying Items...");
-				// Buy the items
-				for(int i = 0; i <= itemsToBuy.length-1; i++) {
-					// Skip null items
-					if(itemsToBuy[i].equalsIgnoreCase("null")) {
-						continue;
+				break;
+			////////////////////////////////////////////////////////////////
+			case 21: // Process item in bank
+				if(currentProcess != null) {
+					if(!currentProcess.inBank()) {
+						Util.log("run(): Unable to process in bank");
+					}else {
+						Util.log("run(): process in bank done");
 					}
-					
-					// if we have no coins
-					if(!Inven.hasCoins() || Trade.isMuleNearby()) {
-						continue;
-					}
-					
-					int tempAmountToBuy = amountToBuy;
-					Util.log("\n\nBuying: " + itemsToBuy[i]);
-					Util.log("Price: " + buyPrice.get(i));
-					
-					Network.updateBotSubTask("Buying: " + itemsToBuy[i]);
-					// If we're buying vials of water, add the amount of left over herbs
-					if(itemsToBuy[i].equalsIgnoreCase("Vial of water")) {
-						tempAmountToBuy += extraHerbs;
-						
-						// If we already have this many vials in the bank
-						if((tempAmountToBuy-extraVials) <= 0) {
-							Util.log("Skipped buying vials, enough in bank");
-							continue;
-						}else {
-							// If we only need a bit more vials, buy that amount
-							tempAmountToBuy -= extraVials;
-						}
-					}
-					
-					Util.log("Amount: " + tempAmountToBuy);
-					
-					GE.openBuyOffer(itemsToBuy[i], buyPrice.get(i), tempAmountToBuy);
+				}else {
+					Util.log("run(): NULL process");
 				}
-			}catch(Exception e) {
-				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				Util.log("Something happened when buying");
-				e.printStackTrace();
-				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				Util.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				break;
+			////////////////////////////////////////////////////////////////
+			case 22: // Process item in inventory
+				if(currentProcess != null) {
+					if(!currentProcess.inInventory()) {
+						Util.log("run(): Unable to process in inventory");
+					}else {
+						Util.log("run(): process in inventory done");
+					}
+				}else {
+					Util.log("run(): NULL process");
+				}
+				break;
+
 			}
 			
-			Network.updateBotSubTask("");
-			
-			Util.log("All GE interaction done.");
-			
-			GE.waitThenCancel();
-			
-			GE.closeGE();
+			// Handle errors
+			switch(status) {
+			case SUCCESS:
+			case NONE:
+				break;
 				
-			Bank.openBank();
-			Banking.depositAll();
-			Util.randomSleepRange(2000, 3000);
+			case GE_NOT_OPEN:
+				Util.log("STATUS: Opening GE then retrying");
+				stateOrder.addFirst(state);
+				stateOrder.addFirst(1);
+				break;
+				
+			case SQUARE_NOT_FOUND:
+			case NPC_NOT_FOUND:
+				isRunning = false;
+				Util.log("STATUS: Placement error! Stopping bot");
+				Login.logout();
+				break;
+				
+			case FAILED_CLOSING:
+			case NEW_OFFER_ERROR:
+			case NO_FREE_OFFER:
+			case NO_INVENTORY_ITEM:
+			case ITEM_IN_GE:
+			case GENERAL_FAIL:
+			case TOOK_TOO_LONG:
+				break;
+			}
+			
+			resetStatus();
+			
 		}
 	}
 
@@ -434,6 +457,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
         	isTradeTime = true;
         }
     }
+	
+	public static void setStatus(STATUS newStatus) {
+		status = newStatus;
+	}
+	
+	private void resetStatus() {
+		status = STATUS.NONE;
+	}
 
 
 }

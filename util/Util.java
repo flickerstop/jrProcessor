@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.tribot.api.General;
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.GameTab;
+import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.Walking;
@@ -89,11 +90,11 @@ public class Util{
 	}
 	
 	public static void log(String output) {
-		System.out.println(output);
+		General.println(output);
 	}
 	
 	public static void log(int output) {
-		System.out.println(output + "");
+		General.println(output + "");
 	}
 	
 	public static void waitTillMovingStops() {
@@ -104,7 +105,7 @@ public class Util{
 	
 	public static void clearConsole() {
 		for(int i = 0; i < 10; i++) {
-			System.out.println("");
+			General.println("");
 		}
 	}
 	
@@ -246,6 +247,39 @@ public class Util{
 	}
 	
 	public static long secondsLater(int numberOfSeconds) {
-		return new Date().getTime() + Long.valueOf(numberOfSeconds);
+		return new Date().getTime() + Long.valueOf(numberOfSeconds*1000);
+	}
+	
+	public static int randomNumber(int min, int max) {
+		return ThreadLocalRandom.current().nextInt(min-1, max+1);
+	}
+	
+	/**
+	 * Waits 15 seconds or for the interface to be loaded and ready
+	 * @param interfaceNum
+	 * @return
+	 */
+	public static void waitForInterface(int interfaceNum, int childNum) {
+		long waitTill = Util.secondsLater(15);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    
+		    if(Interfaces.get(interfaceNum, childNum).isClickable()) {
+		    	break;
+		    }
+		}
+	}
+	
+	public static String getMembershipLeft() {
+		if(Interfaces.get(109) != null) {
+			if(Interfaces.get(109).getChild(25) != null) {
+				return Interfaces.get(109).getChild(25).getText().replace("<col=00ff00>", "")
+						.replace("<col=ffff00>", "")
+						.replace("<col=ff0000>", "")
+						.replace("</col>", "")
+						.replace("Membership: ", "");
+			}
+		}
+		return null;
 	}
 }

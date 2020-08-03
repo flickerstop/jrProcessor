@@ -26,72 +26,72 @@ public class Trade {
 		return true;
 	}
 	
-	public static void getReadyForTrade() {
-		Util.log("Opening Bank for trade");
-		Bank.openBank();
-		Util.randomSleep();
+	public static boolean botTradeMule() {
+		//Util.log("botTradeMule(): ");
 		
-		
-		
-		
-		
-		while(Banking.find("Platinum token").length != 0) {
-			Banking.depositAll();
-			Util.randomSleep();
-			// Take out plat tokens
-			Util.log("Taking out plat tokens");
-			Banking.withdraw(0, "Platinum token");
-			Util.randomSleep();
-		}
-		
-		
-		Banking.close();
-		Util.randomSleep();
-		Util.log("Closing bank for trade");
-		
-	}
-	
-	public static void tradeItems() {
 		// Loop till we trade
-		while(true) {
-			
-			if(Trade.isTradeOpen()) {
+		
+		Util.log("botTradeMule(): Looking for mule to trade");
+		
+		// Try to trade the mule for 60 seconds
+		long waitTill = Util.secondsLater(60);
+		while(Util.time() < waitTill) {
+			// If the trade window is open
+			if(isTradeOpen()) {
 				break;
 			}
 			
-			// Find the mule
-			if(Players.find(MULE_NAME).length == 0) {
-				Util.log("Mule not found!");
-				return;
+		    Util.randomSleep();
+		    if(Trade.isTradeOpen()) {
+				break;
 			}
-			
-			RSPlayer mule = Players.find(MULE_NAME)[0];
+		    
+		    // Find the mule
+ 			if(Players.find(MULE_NAME).length == 0) {
+ 				Util.log("botTradeMule(): Mule not found!");
+ 				return false;
+ 			}
+ 			
+ 			RSPlayer mule = Players.find(MULE_NAME)[0];
 			// Trade the mule
 			mule.click("Trade with "+MULE_NAME);
 			Util.randomSleepRange(2000, 4000);
-			
 		}
 		
-		
+		// wait another 30 seconds or until the trade window opens
+		waitTill = Util.secondsLater(30);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(isTradeOpen()) {
+				break;
+			}
+		}
+		// If no trade window open
+		if(!isTradeOpen()) {
+			Util.log("botTradeMule(): No trade opened after 1.5 minutes");
+			return false;
+		}
 		
 		//Make sure we're trading the correct person
 		if(!Trading.getOpponentName().equalsIgnoreCase(MULE_NAME)) {
-			Util.log("NOT TRADING MULE!");
+			Util.log("botTradeMule(): NOT TRADING MULE!");
 			Trading.close();
-			return;
+			return false;
 		}
 		
 		
+		// Offer the plat
+		Util.log("botTradeMule(): Adding plat to trade");
 		while(Inventory.find("Platinum token").length != 0){
 			Trading.offer(0, "Platinum token");
 			Util.randomSleepRange(4000, 7000);
 		}
 		
-		
+		Util.log("botTradeMule(): Accepting trade");
 		// Loop till accept
 		while(true) {
 			// Make sure we're still trading
-			if(Trading.getWindowState() != Trading.WINDOW_STATE.FIRST_WINDOW && Trading.getWindowState() != Trading.WINDOW_STATE.SECOND_WINDOW) {
+			if(!isTradeOpen()) {
 				break;
 			}
 			
@@ -102,23 +102,26 @@ public class Trade {
 			Util.randomSleep();
 		}
 		
-		Util.log("Trading done!");
+		Util.log("botTradeMule(): Trading done!");
+		return true;
 		
 	}
 	
-	public static boolean tradeTarget(String[] muleTarget){
-		Util.log("Hopping worlds...");
+	public static boolean muleTradeBot(String[] muleTarget){
+		//Util.log("muleTradeBot(): ");
+		
+		Util.log("muleTradeBot(): Hopping worlds...");
 		// Hop to that world
 		if(!WorldHopper.changeWorld(Integer.parseInt(muleTarget[1]))) {
 			Util.log("Failed to hop worlds");
 			return false;
 		}
-		Util.randomSleepRange(2000, 4000);
+		Util.randomSleepRange(6000, 10000);
 		
-		Util.log("Logging in...");
+		Util.log("muleTradeBot(): Logging in...");
 		// log in
 		if(!Login.login()) {
-			Util.log("Failed to login");
+			Util.log("muleTradeBot(): Failed to login");
 			return false;
 		}
 		Util.randomSleep();
@@ -126,36 +129,42 @@ public class Trade {
 		Util.randomSleep();
 		
 		// look for the player
-		Util.log("Trying to find player: "+muleTarget[0]);
+		Util.log("muleTradeBot(): Trying to find player: "+muleTarget[0]);
 		for(int i = 0; i< 15; i++) {
 			if(Players.find(muleTarget[0]).length == 0) {
-				Util.log("Player not found! Attempt # "+i);
+				Util.log("muleTradeBot(): Player not found! Attempt # "+i);
 				Util.randomSleepRange(2000, 6000);
 			}else {
 				break;
 			}
 		}
+		
 		// No player found
 		if(Players.find(muleTarget[0]).length == 0) {
-			Util.log("Player not found! Quitting...");
+			Util.log("muleTradeBot(): Player not found! Quitting...");
 			return false;
 		}
 		
 		// Walk to the spot to trade
-		Util.walkMuleToTrade();
+		if(!Util.walkMuleToTrade()) {
+			Util.log("muleTradeBot(): Unable to walk to bot");
+			return false;
+		}
 		Util.randomSleepRange(2000, 4000);
 		
-		// Target the palyer
+		// Target the player
 		RSPlayer target = Players.find(muleTarget[0])[0];
 		boolean isTrading = false;
+		
+		long waitTill = Util.secondsLater(60*2);
 		// Keep trading the player till we get a trade window
-		while(!isTrading) {
-			Util.log("Attempting to trade: "+muleTarget[0]);
+		while(!isTrading && Util.time() < waitTill) {
+			Util.log("muleTradeBot(): Attempting to trade: "+muleTarget[0]);
 			Interfaces.closeAll();
 
 			// If the player isn't in the correct spot, wait
 			if(target.getPosition().getY() != 3489) {
-				Util.log("Player not standing in correct spot");
+				Util.log("muleTradeBot(): Player not standing in correct spot");
 				Util.randomSleepRange(3000, 5000);
 				continue;
 			}
@@ -165,11 +174,11 @@ public class Trade {
 			
 			
 			for(int i = 0; i < 15; i++) {
-				Util.log("waiting for trade window...");
+				Util.log("muleTradeBot(): waiting for trade window...");
 				Util.randomSleepRange(1000, 3000);
-				if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {
+				if(isTradeOpen()) {
 					if(!Trading.getOpponentName().equalsIgnoreCase(muleTarget[0])) {
-						Util.log("Trading wrong person!");
+						Util.log("muleTradeBot(): Trading wrong person!");
 						Trading.close();
 						Util.randomSleep();
 						continue;
@@ -178,18 +187,19 @@ public class Trade {
 					break;
 				}
 			}
-			
-			
-			
-			
-			
 		}
 		Util.randomSleep();
 		
+		if(!isTradeOpen()) {
+			Util.log("muleTradeBot(): Not trading anyone");
+			return false;
+		}
+		
+		Util.log("muleTradeBot(): Accepting Trade");
 		// Loop till accept
 		while(true) {
 			// Make sure we're still trading
-			if(Trading.getWindowState() != Trading.WINDOW_STATE.FIRST_WINDOW && Trading.getWindowState() != Trading.WINDOW_STATE.SECOND_WINDOW) {
+			if(!isTradeOpen()) {
 				break;
 			}
 			
@@ -200,44 +210,10 @@ public class Trade {
 			Util.randomSleep();
 		}
 		
-		
+		Util.log("muleTradeBot(): Trade done");
 		return true;
 	}
-	
-	public static void tradeMule() {
-		// look for the player
-		Util.log("Trying to find mule: "+MULE_NAME);
-		Network.updateBotSubTask("Trying to find mule: "+MULE_NAME);
-		for(int i = 0; i< 15; i++) {
-			if(Players.find(MULE_NAME).length == 0) {
-				Util.log("Player not found! Attempt # "+i);
-				Util.randomSleepRange(2000, 6000);
-			}else {
-				break;
-			}
-		}
-		// No player found
-		if(Players.find(MULE_NAME).length == 0) {
-			Util.log("Player not found! Quitting...");
-			return;
-		}
-		
-		Util.randomSleepRange(2000, 4000);
-		
-		// Target the player
-		RSPlayer target = Players.find(MULE_NAME)[0];
-		
-		Util.log("Attempting to trade: "+MULE_NAME);
-		Interfaces.closeAll();
 
-		Util.randomSleepRange(2000, 4000);
-		// Trade the player
-		Network.updateBotSubTask("Trading: "+MULE_NAME);
-		target.click("Trade with "+MULE_NAME);
-			
-			
-		Util.randomSleep();
-	}
 	
 	public static boolean isTradeOpen() {
 		if(Trading.getWindowState() == Trading.WINDOW_STATE.FIRST_WINDOW || Trading.getWindowState() == Trading.WINDOW_STATE.SECOND_WINDOW) {

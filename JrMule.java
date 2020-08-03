@@ -56,7 +56,7 @@ public class JrMule extends Script implements Starting, Ending {
 					Util.log("Target found!");
 					Util.log("Name: "+muleTarget[0]);
 					Util.log("World: "+muleTarget[1]);
-					if(!Trade.tradeTarget(muleTarget)) {
+					if(!Trade.muleTradeBot(muleTarget)) {
 						// Trade failed
 						Util.log("Trading failed!");
 						Network.updateMuleData();

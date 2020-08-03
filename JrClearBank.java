@@ -22,7 +22,7 @@ public class JrClearBank extends Script{
 		Util.randomSleep();
 		// Time to Empty bank and sell
 		Util.log("Emptying Bank");
-		Bank.emptyBank(true);
+		Bank.emptyBank();
 		Util.randomSleep();
 		
 		Util.log("Closing Bank");

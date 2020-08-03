@@ -11,6 +11,7 @@ import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
 
+import scripts.util.Bank;
 import scripts.util.Util;
 
 public class ProcessingObject {
@@ -53,7 +54,7 @@ public class ProcessingObject {
 		this.isSell = is;
 	}
 	
-	public void inInventory() {
+	public boolean inInventory() {
 		
 		try {
 			RSItem item1 = Inventory.find(this.item1)[0];
@@ -61,11 +62,11 @@ public class ProcessingObject {
 			
 			if(item1.getDefinition().isNoted()) {
 				Util.log("Item 1 in inventory are noted!!");
-				return;
+				return false;
 			}
 			if(item2 != null && item2.getDefinition().isNoted()) {
 				Util.log("Item 2 in inventory are noted!!");
-				return;
+				return false;
 			}
 			
 		}catch(Exception e) {
@@ -97,8 +98,10 @@ public class ProcessingObject {
 			}
 			
 			try {
-				randomNumItem1 = ThreadLocalRandom.current().nextInt(item1Array.length-maxItemsBack, item1Array.length);
-				randomNumItem2 = ThreadLocalRandom.current().nextInt(0, (item2Array.length-(item2Array.length-maxItemsBack)));
+//				randomNumItem1 = ThreadLocalRandom.current().nextInt(item1Array.length-maxItemsBack, item1Array.length);
+//				randomNumItem2 = ThreadLocalRandom.current().nextInt(0, (item2Array.length-(item2Array.length-maxItemsBack)));
+				randomNumItem1 = item1Array.length-1;
+				randomNumItem2 = 0;
 			}catch(Exception e) {
 				// Do something...
 			}
@@ -124,13 +127,14 @@ public class ProcessingObject {
 				item1 = item1Array[randomNumItem1];
 				item2 = item2Array[randomNumItem2];
 			}catch (Exception e) {
-				return;
+				e.printStackTrace();
+				return false;
 			}
 			
 			
 			
 			item1.click("use");
-			Util.randomSleepRange(50,200);
+			Util.randomSleep();
 			item2.click("use");
 			Util.randomSleep();
 			
@@ -147,11 +151,20 @@ public class ProcessingObject {
 				// If the current time is larger than the end time
 				if(new Date().getTime() > endTime) {
 					Util.log("Waited long enough");
-					return;
+					return false;
 				}
 			}
 			
 			Util.randomSleepRange(500, 1000);
+			
+			if(Util.randomNumber(0, 100) > 70) {
+				Mouse.leaveGame(true);
+			}else {
+				Bank.hoverBank();
+			}
+			
+			
+			
 			
 			// Spam space until the make interface is gone
 			endTime = new Date().getTime() + 20000L;
@@ -171,7 +184,7 @@ public class ProcessingObject {
 				// If the current time is larger than the end time
 				if(new Date().getTime() > endTime) {
 					Util.log("Waited long enough");
-					return;
+					return false;
 				}
 				
 				if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
@@ -179,7 +192,8 @@ public class ProcessingObject {
 				}
 			}
 			
-			Mouse.leaveGame(true);
+			//Mouse.leaveGame(true);
+			
 			
 			// wait for done or level up
 			endTime = new Date().getTime() + 30000L;
@@ -327,6 +341,7 @@ public class ProcessingObject {
 					RSItem item2 = Inventory.find(this.item2)[0];
 					
 					item1.click("use");
+					Util.randomSleep();
 					item2.click("use");
 					
 					Util.randomSleepRange(2000, 3000);
@@ -343,7 +358,7 @@ public class ProcessingObject {
 						// If the current time is larger than the end time
 						if(new Date().getTime() > endTime) {
 							Util.log("Waited long enough");
-							return;
+							return false;
 						}
 						
 						if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
@@ -373,7 +388,8 @@ public class ProcessingObject {
 					}
 				}
 			}catch(Exception e) {
-				return;
+				e.printStackTrace();
+				return false;
 			}
 		}else if(processType == 5) {
 			Mouse.setSpeed(300);
@@ -385,14 +401,17 @@ public class ProcessingObject {
 					RSItem item1 = Inventory.find(this.item1)[0];
 					
 					item1.click("use");
+					Util.randomSleep();
 					item2.click("use");
 				}
 			}catch(Exception e) {
 				Mouse.setSpeed(100);
-				return;
+				return false;
 			}
 			Mouse.setSpeed(100);
 		}
+		
+		return true;
 	}
 	
 	public boolean inBank() {
@@ -417,6 +436,7 @@ public class ProcessingObject {
 					if(Inventory.getCount(this.item1) != 27) {
 						Banking.withdraw(27, this.item1);
 					}
+					Util.randomSleep();
 					// Check if there's enough of item 2 ONLY if there's not 27 (item 1 was a stack)
 					if(Inventory.getCount(this.item2) != 1) {
 						Banking.withdraw(27, this.item2);
@@ -428,6 +448,7 @@ public class ProcessingObject {
 			while(Banking.find(this.item1).length != 0 || Banking.find(this.item2).length != 0) {
 				// Take out Item 1
 				Banking.withdraw(0, this.item1);
+				Util.randomSleep();
 				Banking.withdraw(0, this.item2);
 				
 				Util.randomSleepRange(2000, 3000);
@@ -461,6 +482,7 @@ public class ProcessingObject {
 			
 			// Take out Item 1
 			Banking.withdraw(numItem1, this.item1);
+			Util.randomSleep();
 			Banking.withdraw(numItem2, this.item2);
 
 			
@@ -477,6 +499,7 @@ public class ProcessingObject {
 					if(Inventory.getCount(this.item1) != numItem1) {
 						Banking.withdraw(numItem1, this.item1);
 					}
+					Util.randomSleep();
 					// Check if there's enough of item 2 ONLY if there's not 27 (item 1 was a stack)
 					if(Inventory.getCount(this.item2) != numItem2 && Inventory.getCount(this.item2) != 27) {
 						Banking.withdraw(numItem2, this.item2);

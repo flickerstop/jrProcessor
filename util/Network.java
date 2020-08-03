@@ -24,9 +24,9 @@ import scripts.objects.ProcessingObject;
 
 public class Network {
 
-	//private String urlStart = "http://192.168.2.32"; // LAPTOP
-	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	private static String urlStart = "http://flickerstop.com"; // BANK
+	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
+	private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	//private static String urlStart = "http://flickerstop.com"; // BANK
 	
 	private static long startTime = 0L;
 	
@@ -85,8 +85,6 @@ public class Network {
 	
 	public static String[] getNextMuleTarget() throws Exception {
 		String data = getHTML(urlStart+"/post/jrprocessorMuleData");
-		// FIXME
-		//String data = getHTML("http://192.168.2.32"+"/post/jrprocessorMuleData");
 		
 		if(data.equalsIgnoreCase("none")) {
 			return null;
@@ -240,7 +238,6 @@ public class Network {
 	
 	private static String post(Map<String,Object> params) throws Exception {
 		
-		//FIXME
 		URL url = new URL (urlStart+"/post/jrprocessor");
 		//URL url = new URL ("http://192.168.2.63"+"/post/jrprocessor");
 		
@@ -275,13 +272,20 @@ public class Network {
 		
 		startTime = new Date().getTime();
 		
-		Util.log(Player.getRSPlayer().getName());
-		if(Player.getRSPlayer().getName().equalsIgnoreCase("Mathew Kenne") || Player.getRSPlayer().getName().equalsIgnoreCase("Zander Caius")) {
-			Util.log("SET SERVER TO LOCAL");
-			urlStart = "http://192.168.2.63"; // DESKTOP
-			//urlStart = "http://192.168.2.32"; // LAPTOP
-		}else {
-			Util.log("Server set to remote");
+		String membershipLeft = Util.getMembershipLeft();
+
+		Util.log("Server set to remote");
+		
+		Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", Player.getRSPlayer().getName());
+        params.put("type","init");
+        params.put("membership",membershipLeft);
+
+        try {
+			post(params);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
