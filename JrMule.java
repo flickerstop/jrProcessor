@@ -30,62 +30,62 @@ public class JrMule extends Script implements Starting, Ending {
 
 	@Override
 	public void run() {
-		Util.setMule();
-		this.setLoginBotState(false);
-		while(true) {
-			
-			Util.log("making sure we're logged out");
-			// Check if we're all the login screen
-			if(Login.getLoginState() != Login.STATE.LOGINSCREEN) {
-				Util.log("Logging out");
-				// if not, log out
-				Login.logout();
-				Util.randomSleepRange(3000,4000,false);
-			}
-			
-			
-			
-			// check if there's any plat tokens to collect
-			try {
-				Util.log("Getting next target");
-				String[] muleTarget = Network.getNextMuleTarget();
-				
-				// There's a target
-				if(muleTarget != null) {
-					Network.updateMuleTask("Trading With: "+muleTarget[0]);
-					Util.log("Target found!");
-					Util.log("Name: "+muleTarget[0]);
-					Util.log("World: "+muleTarget[1]);
-					if(!Trade.muleTradeBot(muleTarget)) {
-						// Trade failed
-						Util.log("Trading failed!");
-						Network.updateMuleData();
-						Network.updateMuleTask("Trading Failed!");
-						Util.randomSleepRange(3000,4000);
-						Login.logout();
-						Util.randomSleepRange(45000, 60000,false);
-					}else {
-						Util.log("Trading Success!");
-						Network.updateMuleTask("Waiting between trades...");
-						Network.updateMuleData();
-						Util.randomSleepRange(3000,4000);
-						Login.logout();
-						Util.randomSleepRange(60000, 120000,false);
-					}
-				}else {
-					Util.log("No target to trade");
-					Network.updateMuleTask("No trades needed");
-					Util.randomSleepRange(145000, 180000,false);
-				}
-			}catch(Exception e) {
-				e.printStackTrace();
-				Login.logout();
-				Util.randomSleepRange(45000, 80000,false);
-			}
-			
-			
-
-		}
+//		Util.setMule();
+//		this.setLoginBotState(false);
+//		while(true) {
+//			
+//			Util.log("making sure we're logged out");
+//			// Check if we're all the login screen
+//			if(Login.getLoginState() != Login.STATE.LOGINSCREEN) {
+//				Util.log("Logging out");
+//				// if not, log out
+//				Login.logout();
+//				Util.randomSleepRange(3000,4000,false);
+//			}
+//			
+//			
+//			
+//			// check if there's any plat tokens to collect
+//			try {
+//				Util.log("Getting next target");
+//				String[] muleTarget = Network.getNextMuleTarget();
+//				
+//				// There's a target
+//				if(muleTarget != null) {
+//					Network.updateMuleTask("Trading With: "+muleTarget[0]);
+//					Util.log("Target found!");
+//					Util.log("Name: "+muleTarget[0]);
+//					Util.log("World: "+muleTarget[1]);
+//					if(!Trade.muleTradeBot(muleTarget)) {
+//						// Trade failed
+//						Util.log("Trading failed!");
+//						Network.updateMuleData();
+//						Network.updateMuleTask("Trading Failed!");
+//						Util.randomSleepRange(3000,4000);
+//						Login.logout();
+//						Util.randomSleepRange(45000, 60000,false);
+//					}else {
+//						Util.log("Trading Success!");
+//						Network.updateMuleTask("Waiting between trades...");
+//						Network.updateMuleData();
+//						Util.randomSleepRange(3000,4000);
+//						Login.logout();
+//						Util.randomSleepRange(60000, 120000,false);
+//					}
+//				}else {
+//					Util.log("No target to trade");
+//					Network.updateMuleTask("No trades needed");
+//					Util.randomSleepRange(145000, 180000,false);
+//				}
+//			}catch(Exception e) {
+//				e.printStackTrace();
+//				Login.logout();
+//				Util.randomSleepRange(45000, 80000,false);
+//			}
+//			
+//			
+//
+//		}
 	}
 	
 

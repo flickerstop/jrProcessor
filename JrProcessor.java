@@ -33,14 +33,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	private static boolean isReadyToBreak = false;
 	private static boolean isBreaking = false;
 	private static boolean isTradeTime = false;
-	private static int totalCashStack = 0;
-	private static int totalBought = 0;
 	
 	
 	private static final int MIN_OFFSET = 10;
 	private static int offset = MIN_OFFSET;
 	
-	private static final int MAX_ITEMS = 30;
+	private static final int MAX_ITEMS = 28;
 	
 	public static final int MIN_COINS = 400000;
 	
@@ -49,6 +47,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	public static LinkedList<Integer> stateOrder = new LinkedList<Integer>();
 	
 	private static STATUS status = STATUS.NONE;
+	private static int currentState = 0;
 	
 	public static enum STATUS {
 		NONE,
@@ -84,7 +83,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Login.login();
 		}
 		Util.log("run(): network init");
-		Network.init();
+		Network.init("jrProcessor");
 		
 		
 		// Starting order
@@ -93,7 +92,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 		
 		while(isRunning) {
-			
+			try {
+				Network.updateJrProcessor();
+			} catch (Exception e) {
+				Util.log("run(): Error updateJrProcessor()");
+				e.printStackTrace();
+			}
 			// Check if we need a new state path
 			if(stateOrder.size() == 0) {
 				stateOrder.addAll(Arrays.asList(2,10,14,15));
@@ -101,9 +105,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 
 			
 			// Get the next state
-			int state = stateOrder.removeFirst();
+			currentState = stateOrder.removeFirst();
 			
-			switch(state) {
+			switch(currentState) {
 			////////////////////////////////////////////////////////////////
 			case 1: // Open GE
 				if(!GE.openGE()) {
@@ -361,7 +365,26 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					Util.log("run(): NULL process");
 				}
 				break;
-
+				
+				
+			////////////////////////////////////////////////////////////////
+							
+			////////////////////////////////////////////////////////////////
+			case 30:
+				Util.log("run(): Break Starting");
+				Login.logout();
+				isReadyToBreak = true;
+				Util.randomSleepRange(10000, 20000);
+				while(isBreaking) {
+					Util.randomSleepRange(10000,20000);
+				}
+				isReadyToBreak = false;
+				Util.log("run(): Break Ending");
+				
+				Util.log("run(): logging in");
+				Login.login();
+				
+				break;
 			}
 			
 			// Handle errors
@@ -372,7 +395,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 			case GE_NOT_OPEN:
 				Util.log("STATUS: Opening GE then retrying");
-				stateOrder.addFirst(state);
+				stateOrder.addFirst(currentState);
 				stateOrder.addFirst(1);
 				break;
 				
@@ -403,6 +426,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	public void onBreakEnd() {
 		Util.log("Break End");
 		isBreaking = false;
+		try {
+			Network.announceBreakEnd();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 
@@ -414,13 +443,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 
 	@Override
 	public void onPreBreakStart(long arg0) {
+		stateOrder.addFirst(30);
 		// Wait for when we can break
 		while(!isReadyToBreak) {
 			Util.randomSleepRange(100, 200);
 		}
 		
 		try {
-			Network.announceBreak();
+			Network.announceBreakStart();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -464,6 +494,52 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	
 	private void resetStatus() {
 		status = STATUS.NONE;
+	}
+	
+	public static String getStateString() {
+		switch(currentState) {
+		case 1:
+			return "Opening GE";
+		case 2:
+			return "Closing GE";
+		case 3:
+			return "Selling Inventory";
+		case 4:
+			return "Canceling and Collecting GE";
+		case 5:
+			return "Buying next items";
+		case 6:
+			return "Waiting for items to buy/sell";
+			
+			
+		case 10:
+			return "Opening Bank";
+		case 11:
+			return "Closing Bank";
+		case 12:
+			return "Emptying Bank";
+		case 13:
+			return "Counting herbs/vials";
+		case 14:
+			return "Depositing all items";
+		case 15:
+			return "Checking for next process";
+			
+			
+		case 20:
+			return "DEAD STATE";
+		case 21:
+			return "Processing in Bank";
+		case 22:
+			return "Processing in Inventory";
+			
+			
+		case 30:
+			return "Breaking...";
+			
+		default:
+			return "INVALID STATE";
+		}
 	}
 
 

@@ -29,6 +29,11 @@ public class Bank {
 	public static int herbsInBank = 0;
 	public static int vialsInBank = 0;
 	
+	
+	public static int gpInBank = 0;
+	private static int maxGPInBank = 0;
+	public static int platInBank = 0;
+	
 	/**
 	 * Attempts to open the bank
 	 * @return false if the bank could not be opened
@@ -98,6 +103,9 @@ public class Bank {
 //			Util.randomSleepRange(1000*60*60*24, 1000*60*60*25, false);
 //		}
 		
+		gpInBank = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
+		platInBank = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
+		setMaxGPInBank(gpInBank);
 		return true;
 	}
 	
@@ -419,6 +427,19 @@ public class Bank {
 		    }
 		}
 		return true;
+	}
+
+	
+	
+	
+	public static int getMaxGPInBank() {
+		return maxGPInBank;
+	}
+
+	public static void setMaxGPInBank(int newMaxGPInBank) {
+		if(newMaxGPInBank > maxGPInBank) {
+			maxGPInBank = newMaxGPInBank;
+		}
 	}
 
 }

@@ -894,7 +894,7 @@ public class GE {
 		
 		
 		
-		
+		Bank.setMaxGPInBank(Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0);
 		
 		JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
 		return true;

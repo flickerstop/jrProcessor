@@ -19,6 +19,7 @@ import org.tribot.api2007.WorldHopper;
 import org.tribot.api2007.types.RSItem;
 import org.tribot.script.Script;
 
+import scripts.JrProcessor;
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 
@@ -28,6 +29,12 @@ public class Network {
 	private static String urlStart = "http://192.168.2.63"; // DESKTOP
 	//private static String urlStart = "http://flickerstop.com"; // BANK
 	
+	
+	private static String playerName = "";
+	private static String scriptName = "";
+	
+	public static boolean isInit = false;
+	
 	private static long startTime = 0L;
 	
 	private static String version = "v1.00";
@@ -36,7 +43,7 @@ public class Network {
 		
 		int fletchingLevel = Skills.getCurrentLevel(Skills.SKILLS.FLETCHING);
 		
-		String url = urlStart+"/get/jrprocessor/";
+		String url = urlStart+"/get/bot/jrProcessor/bestTasks";
 		
 		String data;
 		try {
@@ -84,7 +91,7 @@ public class Network {
 	}
 	
 	public static String[] getNextMuleTarget() throws Exception {
-		String data = getHTML(urlStart+"/post/jrprocessorMuleData");
+		String data = getHTML(urlStart+"/post/bot/muleData");
 		
 		if(data.equalsIgnoreCase("none")) {
 			return null;
@@ -116,15 +123,10 @@ public class Network {
 		return result.toString();
 	}
 	
-	public static void updateAPI(ProcessingObject process, int totalCashStack, int totalBought) throws Exception {
-		int item1 = Banking.find(process.item1).length != 0 ? Banking.find(process.item1)[0].getStack() : 0;
-		int item2 = Banking.find(process.item2).length != 0 ? Banking.find(process.item2)[0].getStack() : 0;
-		int result = Banking.find(process.result).length != 0 ? Banking.find(process.result)[0].getStack() : 0;
-		int coins = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
-		int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
-		
+	public static void updateJrProcessor() throws Exception {
 		int herbloreLevel = Skills.getCurrentLevel(Skills.SKILLS.HERBLORE);
 		int fletchingLevel = Skills.getCurrentLevel(Skills.SKILLS.FLETCHING);
+		int magicLevel = Skills.getCurrentLevel(Skills.SKILLS.MAGIC);
 		
 		String position = "x:"+Player.getRSPlayer().getPosition().getX()+" y:"+Player.getRSPlayer().getPosition().getY();
 				
@@ -132,56 +134,47 @@ public class Network {
 		
 		
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("coins", coins);
-        params.put("plat", plat);
-        params.put("item1Name", process.item1);
-        params.put("item1Count", item1);
-        params.put("item2Name", process.item2);
-        params.put("item2Count", item2);
-        params.put("resultName", process.result);
-        params.put("resultCount", result);
-        params.put("totalCoins",totalCashStack);
-        params.put("totalBought",totalBought);
-        params.put("type","update");
-        params.put("version",version);
+        params.put("name", playerName);
+        params.put("coins", Bank.gpInBank);
+        params.put("maxCoins", Bank.getMaxGPInBank());
+        params.put("plat", Bank.platInBank);
         params.put("herblore", herbloreLevel);
         params.put("fletching", fletchingLevel);
+        params.put("magic", magicLevel);
         params.put("position", position);
         params.put("startTime", startTime);
         params.put("world", WorldHopper.getWorld());
+        
+    	params.put("item1Name", JrProcessor.currentProcess == null ? null : JrProcessor.currentProcess.item1);
+        params.put("item1Count", JrProcessor.currentProcess == null ? null : ItemProcessManager.getItem1Total());
+        params.put("item2Name", JrProcessor.currentProcess == null ? null : JrProcessor.currentProcess.item2);
+        params.put("item2Count", JrProcessor.currentProcess == null ? null : ItemProcessManager.getItem2Total());
+        params.put("resultName", JrProcessor.currentProcess == null ? null : JrProcessor.currentProcess.result);
+        params.put("resultCount", JrProcessor.currentProcess == null ? null : ItemProcessManager.getResultTotal());
 
-        post(params);
+        post(params,"/jrProcessorUpdate");
 	}
 	
-	public static void updateMuleData() throws Exception {
-		int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
-        Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("plat", plat);
-        params.put("type","mule");
-
-        post(params);
-	}
-	
-	public static void updateMuleTask(String task) throws Exception {
-		//int plat = Inventory.find("Platinum token").length != 0 ? Inventory.find("Platinum token")[0].getStack() : 0;
-        Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","muleTask");
-        params.put("task",task);
-
-        post(params);
-	}
-	
-	public static void updateBotSubTask(String task){
+	public static void updateMainTask(String task){
 		Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","taskUpdate");
+        params.put("name", playerName);
         params.put("task", task);
 
         try {
-			post(params);
+			post(params,"/mainTask");
+		} catch (Exception e) {
+			Util.log("Error updating main task");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateSubTask(String task){
+		Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", playerName);
+        params.put("task", task);
+
+        try {
+			post(params,"/subTask");
 		} catch (Exception e) {
 			Util.log("Error updating sub task");
 			e.printStackTrace();
@@ -191,55 +184,45 @@ public class Network {
 	public static void updatePosition() throws Exception {
 		String position = "x:"+Player.getRSPlayer().getPosition().getX()+" y:"+Player.getRSPlayer().getPosition().getY();
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
+        params.put("name", playerName);
         params.put("position", position);
-        params.put("type","position");
 
-        post(params);
+        post(params,"/position");
 	}
 	
-	public static void announceGE() throws Exception {
-		int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
-		
+	
+	public static void announceBreakStart() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","ge");
-        params.put("plat", plat);
+        params.put("name", playerName);
 
-        post(params);
+        post(params,"/breakStart");
 	}
 	
-	public static void announceWaitingForMule() throws Exception {
-		//int plat = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
-		
+	public static void sendLog(String logData) throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","waitingForMule");
-        //params.put("plat", plat);
+        params.put("name", playerName);
+        params.put("logString", logData);
 
-        post(params);
+        post(params,"/log");
 	}
 	
-	public static void announceBreak() throws Exception {
+	public static void announceBreakEnd() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","break");
+        params.put("name", playerName);
 
-        post(params);
+        post(params,"/breakEnd");
 	}
 	
 	public static void announceCrash() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","crash");
+        params.put("name", playerName);
 
-        post(params);
+        post(params,"/crash");
 	}
 	
-	private static String post(Map<String,Object> params) throws Exception {
+	private static String post(Map<String,Object> params,String postPath) throws Exception {
 		
-		URL url = new URL (urlStart+"/post/jrprocessor");
-		//URL url = new URL ("http://192.168.2.63"+"/post/jrprocessor");
+		URL url = new URL (urlStart+"/post/bot"+postPath);
 		
 		StringBuilder postData = new StringBuilder();
 		for (Map.Entry<String,Object> param : params.entrySet()) {
@@ -268,23 +251,28 @@ public class Network {
 		return returnString.toString();
 	}
 	
-	public static void init() {
+	public static void init(String newScriptName) {
 		
 		startTime = new Date().getTime();
+		
+		playerName = Player.getRSPlayer().getName();
+		scriptName = newScriptName;
 		
 		String membershipLeft = Util.getMembershipLeft();
 
 		Util.log("Server set to remote");
 		
 		Map<String,Object> params = new LinkedHashMap<>();
-        params.put("name", Player.getRSPlayer().getName());
-        params.put("type","init");
+        params.put("name", playerName);
+        params.put("script", scriptName);
         params.put("membership",membershipLeft);
+        params.put("startTime",startTime);
+        params.put("version",version);
 
         try {
-			post(params);
+			post(params,"/init");
+			isInit = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

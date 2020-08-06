@@ -417,6 +417,10 @@ public class ProcessingObject {
 	public boolean inBank() {
 		Util.randomSleep();
 		
+		ItemProcessManager.setItem1Total(Banking.find(this.item1).length != 0 ? Banking.find(this.item1)[0].getStack() : 0);
+		ItemProcessManager.setItem2Total(Banking.find(this.item2).length != 0 ? Banking.find(this.item2)[0].getStack() : 0);
+		ItemProcessManager.setResultTotal(Banking.find(this.result).length != 0 ? Banking.find(this.result)[0].getStack() : 0);
+		
 		// Making items that take 27 out then 1
 		if(processType == 3 || processType == 6) {
 			// Take out Item 1

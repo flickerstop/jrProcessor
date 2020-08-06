@@ -1,0 +1,88 @@
+long waitTill = Util.secondsLater(5);
+while(Util.time() < waitTill) {
+    Util.randomSleep();
+}
+
+
+Method
+
+    No method will open/close interfaces at the start
+
+
+
+STATES
+
+1   open GE
+2   closeGE
+3   sell inventory
+4   cancel and collect
+5   Buy next item
+6   wait and collect
+
+
+10  open bank
+11  close bank
+12  empty bank
+13  Count herbs/vials
+14  deposit all
+15  find what to do next
+
+
+
+20  search bank for process
+21  process in bank
+22  process in inventory
+
+
+
+POST TYPES (/post/bot)
+
+/init
+    name
+    script
+    membership
+    startTime
+    version
+
+/position
+    name
+    position
+
+/breakStart
+    name
+
+/breakEnd
+    name
+
+/crash
+    name
+
+/mainTask
+    name
+    task
+
+/subTask
+    name
+    task
+
+/jrProcessorUpdate
+    name
+    coins
+    maxCoins
+    plat
+    item1Name
+    item1Count
+    item2Name
+    item2Count
+    resultName
+    resultCount
+    herblore
+    fletching
+    magic
+    position
+    startTime
+    world
+
+/log
+    name
+    logString

@@ -6,6 +6,12 @@ import org.tribot.api2007.Banking;
 import org.tribot.api2007.Skills;
 
 public class ItemProcessManager {
+	
+	private static int item1Total = 0;
+	private static int item2Total = 0;
+	private static int resultTotal = 0;
+	
+	
 	public static ProcessingObject searchBank() {
 			
 		for(ProcessingObject process : getListOfProcesses()) {
@@ -158,5 +164,29 @@ public class ItemProcessManager {
 		}
 		
 		return false;
+	}
+
+	public static int getItem1Total() {
+		return item1Total;
+	}
+
+	public static void setItem1Total(int item1Total) {
+		ItemProcessManager.item1Total = item1Total;
+	}
+
+	public static int getItem2Total() {
+		return item2Total;
+	}
+
+	public static void setItem2Total(int item2Total) {
+		ItemProcessManager.item2Total = item2Total;
+	}
+
+	public static int getResultTotal() {
+		return resultTotal;
+	}
+
+	public static void setResultTotal(int resultTotal) {
+		ItemProcessManager.resultTotal = resultTotal;
 	}
 }

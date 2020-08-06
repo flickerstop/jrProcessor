@@ -1,6 +1,9 @@
 package scripts.util;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.General;
@@ -17,6 +20,15 @@ public class Util{
 	private static boolean isMule = false;
 	
 	private static long lastPositionUpdate = new Date().getTime() + 30000L;
+	
+	private static final int MAX_LOG_SIZE = 50;
+	
+	private static LinkedList<String> dataLog = new LinkedList<String>();
+	
+	static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+	
+	private static long lastLogSend = Util.time();
+	private static final long TIME_BETWEEN_LOG = 30000L;
 	
 	/**
 	 * Sleeps for a random number of milliseconds 
@@ -90,11 +102,38 @@ public class Util{
 	}
 	
 	public static void log(String output) {
-		General.println(output);
+		
+		System.out.println(output);
+		
+		Date date = new Date(); 
+		dataLog.add(formatter.format(date) + ": " + output);
+		
+		// If we are over the max log side OR the max time between logs 
+		// AND the network has be init'd
+		if((dataLog.size() > MAX_LOG_SIZE || (lastLogSend + TIME_BETWEEN_LOG) < Util.time()) && Network.isInit) {
+			
+			// Build the output string
+			String outputString = "";
+			for(String logRow : dataLog) {
+				outputString += logRow + "\n";
+			}
+			
+			// Try to send the log
+			try {
+				Network.sendLog(outputString);
+			} catch (Exception e) {
+				System.out.println("Log(): Error sending log to server");
+				e.printStackTrace();
+			}
+			
+			// Clear the log and reset the time
+			dataLog.clear();
+			lastLogSend = Util.time();
+		}
 	}
 	
 	public static void log(int output) {
-		General.println(output + "");
+		log(output + "");
 	}
 	
 	public static void waitTillMovingStops() {
@@ -105,7 +144,7 @@ public class Util{
 	
 	public static void clearConsole() {
 		for(int i = 0; i < 10; i++) {
-			General.println("");
+			log("");
 		}
 	}
 	
