@@ -21,11 +21,12 @@ public class Util{
 	
 	private static long lastPositionUpdate = new Date().getTime() + 30000L;
 	
-	private static final int MAX_LOG_SIZE = 50;
+	private static final int MAX_LOG_SIZE = 10;
 	
 	private static LinkedList<String> dataLog = new LinkedList<String>();
 	
-	static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+	//static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); 
+	static SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss"); 
 	
 	private static long lastLogSend = Util.time();
 	private static final long TIME_BETWEEN_LOG = 30000L;

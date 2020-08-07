@@ -103,6 +103,10 @@ public class Bank {
 //			Util.randomSleepRange(1000*60*60*24, 1000*60*60*25, false);
 //		}
 		
+		if(Banking.getWithdrawQuantity() != Banking.WITHDRAW_QUANTITY.WITHDRAW_X) {
+			Banking.setWithdrawQuantity(Banking.WITHDRAW_QUANTITY.WITHDRAW_X);
+		}
+		
 		gpInBank = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
 		platInBank = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
 		setMaxGPInBank(gpInBank);
@@ -186,7 +190,9 @@ public class Bank {
 		for(ProcessingObject obj : ItemProcessManager.getListOfProcesses()) {
 			// Check if more than 1 in the bank
 			int amount = Banking.find(obj.result).length != 0 ? Banking.find(obj.result)[0].getStack() : 0;
-			
+			if(amount < 10) {
+				continue;
+			}
 			if(amount > 0) {
 				Banking.withdraw(0, obj.result);
 				Util.randomSleep();
@@ -194,6 +200,9 @@ public class Bank {
 			
 			// Check if more than 1 in the bank
 			amount = Banking.find(obj.item1).length != 0 ? Banking.find(obj.item1)[0].getStack() : 0;
+			if(amount < 10) {
+				continue;
+			}
 			if(amount > 0) {
 				Banking.withdraw(0, obj.item1);
 				Util.randomSleep();
@@ -201,6 +210,9 @@ public class Bank {
 			
 			// Check if more than 1 in the bank
 			amount = Banking.find(obj.item2).length != 0 ? Banking.find(obj.item2)[0].getStack() : 0;
+			if(amount < 10) {
+				continue;
+			}
 			if(amount > 0) {
 				Banking.withdraw(0, obj.item2);
 				Util.randomSleep();
@@ -437,6 +449,9 @@ public class Bank {
 	}
 
 	public static void setMaxGPInBank(int newMaxGPInBank) {
+		Util.log("setMaxGPInBank(): new: "+newMaxGPInBank);
+		Util.log("setMaxGPInBank(): old: "+maxGPInBank);
+		
 		if(newMaxGPInBank > maxGPInBank) {
 			maxGPInBank = newMaxGPInBank;
 		}

@@ -23,7 +23,7 @@ import scripts.JrProcessor;
 public class GE {
 	
 	
-	
+	private static final int LONGEST_WAIT_TIME_SECONDS = 60*1;
 	/**
 	 * Attempts to open the GE after walking to the square
 	 * @return FAILED_CLOSING, SQUARE_NOT_FOUND, NPC_NOT_FOUND, GE_NOT_OPEN, SUCCESS
@@ -33,6 +33,7 @@ public class GE {
 		
 		if(Banking.isBankScreenOpen()) {
 			Util.log("openGE(): Bank is open, closing the bank");
+			Network.updateSubTask("Bank is open, closing bank");
 			if(!Banking.close()) {
 				JrProcessor.setStatus(JrProcessor.STATUS.FAILED_CLOSING);
 				return false;
@@ -41,6 +42,7 @@ public class GE {
 		}
 		
 		if(GE.isInGE()) {
+			Network.updateSubTask("Already in GE");
 			Util.log("openGE(): Going back to selection window");
 			GrandExchange.goToSelectionWindow();
 			Util.randomSleep();
@@ -52,6 +54,7 @@ public class GE {
 		boolean onCorrectTile = false;
 		
 		Util.log("openGE(): Checking if on a correct tile");
+		Network.updateSubTask("Checking if standing in correct spot");
 		// For each of the allowed tiles to stand on
 		for(RSTile tile : allowedTiles) {
 			// If the player is standing on this tile
@@ -63,6 +66,7 @@ public class GE {
 		
 		// If not standing on the correct tile, find the closest one and move to it
 		if(!onCorrectTile) {
+			Network.updateSubTask("Moving to correct spot");
 			Util.log("openGE(): No on a correct tile, finding closest");
 			RSTile closestTile = null;
 			int closestTileDistance = Integer.MAX_VALUE;
@@ -108,7 +112,7 @@ public class GE {
 			JrProcessor.setStatus(JrProcessor.STATUS.NPC_NOT_FOUND);
 			return false;
 		}
-		
+		Network.updateSubTask("Clicking Clerk");
 		Util.log("openGE(): Clicking clerk");
 		// Right click the closest NPC and exchange
 		if(!closestNPC.click("Exchange Grand Exchange Clerk")) {
@@ -127,6 +131,7 @@ public class GE {
 		
 		// Check to see if the grand exchange window is open
 		if(GrandExchange.getWindowState() != null) {
+			Network.updateSubTask("GE open");
 			Util.log("openGE(): Done");
 			JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
 			return true;
@@ -154,6 +159,10 @@ public class GE {
 			return false;
 		}
 		
+		Network.updateSubTask("Buying: "+itemName+" #"+quantity+" @"+buyPrice);
+		
+		
+		
 		Util.log("openBuyOffer(): Looking for free offer spot");
 		boolean isOfferFree = false;
 		// Find the first GE slot that's empty
@@ -180,6 +189,7 @@ public class GE {
 			return false;
 		}
 
+		Network.updateSubTask("Opening new offer window");
 		Util.log("openBuyOffer(): Waiting for new offer window");
 		long waitTill = Util.secondsLater(5);
 		while(Util.time() < waitTill) {
@@ -214,6 +224,8 @@ public class GE {
 		} 
 		
 		Util.waitForInterface(162, 45);
+		
+		Network.updateSubTask("Typing out name: " + itemName);
 		
 		Util.log("openBuyOffer(): Start typing out name");
 		// Slowly type out the item name
@@ -255,6 +267,7 @@ public class GE {
 					return false;
 				}
 			}else {
+				Network.updateSubTask("Clicking item to buy");
 				// Wait and see if we clicked the correct thing
 				waitTill = Util.secondsLater(5);
 				while(Util.time() < waitTill) {
@@ -291,8 +304,9 @@ public class GE {
 			return false;
 		}
 		
-		Util.log("openBuyOffer(): Setting buy price");
+		Util.log("openBuyOffer(): Setting buy price: "+ buyPrice);
 		
+		Network.updateSubTask("Typing buy price");
 		// set the buy price
 		if(buyPrice == 0) {
 			// If the price is less than 2000
@@ -318,6 +332,9 @@ public class GE {
 				}
 			}
 			
+		}else if(buyPrice == 1) {
+			JrProcessor.setStatus(JrProcessor.STATUS.BUYING_1GP_ERROR);
+			return false;
 		}else {
 			Mouse.moveBox(376,202,406,222);
 			Util.randomSleep();
@@ -340,6 +357,7 @@ public class GE {
 			return false;
 		}
 		
+		Network.updateSubTask("Typing Quantity");
 		Util.randomSleep();
 		// set the quantity
 		if(quantity != 0) {
@@ -364,7 +382,7 @@ public class GE {
 			return false;
 		}
 		
-		
+		Network.updateSubTask("Confirming");
 		// Click confirm
 		Mouse.moveBox(185,269,334,306);
 		Util.randomSleep();
@@ -373,6 +391,7 @@ public class GE {
 		
 		// Check to see if we're at the "select offer" screen
 		if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
+			Network.updateSubTask("Buy offer created");
 			Util.log("openBuyOffer(): done");
 			JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
 			return true;
@@ -397,7 +416,8 @@ public class GE {
 			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
 			return false;
 		}
-		
+		Network.updateSubTask("Selling: "+itemToSell.name+" #"+quantity+" @"+sellPrice);
+		Util.log("Selling: "+itemToSell.name+" #"+quantity+" @"+sellPrice);
 		
 		Util.log("openSellOffer(): Clicking item to sell");
 		// Click on the item in the inventory
@@ -422,6 +442,7 @@ public class GE {
 			return false;
 		}
 		
+		Network.updateSubTask("Typing out sell price");
 		Util.log("openSellOffer(): Setting the sell price");
 		// set the sell price
 		if(sellPrice != 0) {
@@ -434,13 +455,17 @@ public class GE {
 			Mouse.moveBox(376,202,406,222);
 			Util.randomSleep();
 			Mouse.click(1);
+			Util.randomSleep();
 			
 			Util.waitForInterface(162, 44);
 			for(int i = 0; i < (sellPrice+"").length(); i++) {
 				Keyboard.sendType((sellPrice+"").charAt(i));
 				Util.randomSleepRange(120,200);
 			}
-			Keyboard.pressEnter();
+			if(Interfaces.isInterfaceSubstantiated(162, 44)) {
+				Keyboard.pressEnter();
+			}
+			
 		}
 		Util.randomSleep();
 		
@@ -452,6 +477,7 @@ public class GE {
 		}
 		
 		
+		Network.updateSubTask("Typing out quantity");
 		// Set the amount to sell
 		if(quantity == 0) {
 			Util.log("openSellOffer(): Selling All items");
@@ -481,6 +507,7 @@ public class GE {
 			return false;
 		}
 		
+		Network.updateSubTask("Confirming");
 		// Click confirm
 		Mouse.moveBox(185,269,334,306);
 		Util.randomSleep();
@@ -491,6 +518,7 @@ public class GE {
 		    Util.randomSleep();
 		    // Check to see if we're at the "select offer" screen
 			if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
+				Network.updateSubTask("Sell offer created");
 				JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
 				return true;
 			}
@@ -523,16 +551,17 @@ public class GE {
 	 * -3 - failed at clicking finished offer<br>
 	 * -4 - Could not return to main selection
 	 */
-	public static int checkHighPrice(String itemToCheck) {
-		
+	private static int checkHighPrice(String itemToCheck) {
+		Network.updateSubTask("Checking price: " + itemToCheck);
 		// Util.log("checkHighPrice(): ");
-		Util.log("checkHighPrice(): Creating buy offer for this item");
+		Util.log("checkHighPrice(): Creating buy offer for: "+itemToCheck);
 		if(!openBuyOffer(itemToCheck,0,0)){
 			Util.log("checkHighPrice(): Could not create buy offer");
 			// Offer did not work
 			return -1;
 		}
 		
+		Network.updateSubTask("Looking for offer holding item");
 		// Wait till we're at the main offer screen
 		long waitTill = Util.secondsLater(5);
 		while(Util.time() < waitTill) {
@@ -562,10 +591,10 @@ public class GE {
 			return -1;
 		}
 		
-
+		Network.updateSubTask("Waiting for offer to finish");
 		Util.log("checkHighPrice(): Waiting for buy offer to finish");
 		// Wait till this offer is done
-		waitTill = Util.secondsLater(60*3);
+		waitTill = Util.secondsLater(LONGEST_WAIT_TIME_SECONDS);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(boughtItem.getStatus() == RSGEOffer.STATUS.COMPLETED) {
@@ -577,6 +606,7 @@ public class GE {
 			Util.log("checkHighPrice(): Offer did not complete after 3 minutes");
 			return -2;
 		}else {
+			Network.updateSubTask("Checking HIGH price");
 			Util.log("checkHighPrice(): Opening offer");
 			// Open the offer
 			if(!boughtItem.click()) {
@@ -606,6 +636,7 @@ public class GE {
 			}
 			
 			Util.log("checkHighPrice(): Done");
+			Network.updateSubTask("High price:"+cost);
 			return cost;
 		}
 		
@@ -638,6 +669,7 @@ public class GE {
 	public static int checkLowPrice(RSItem itemToCheck, int quantity) {
 		// Util.log("checkLowPrice(): ");
 
+		Network.updateSubTask("Low price of: " + itemToCheck.name);
 		Util.log("checkLowPrice(): Creating sell offer");
 		if(!openSellOffer(itemToCheck,1,quantity)){
 			Util.log("checkLowPrice(): Creating offer failed");
@@ -645,6 +677,7 @@ public class GE {
 			return -1;
 		}
 		
+		Network.updateSubTask("waiting for sell offer");
 		// Wait till we're at the main offer screen
 		long waitTill = Util.secondsLater(5);
 		while(Util.time() < waitTill) {
@@ -675,7 +708,7 @@ public class GE {
 
 		Util.log("checkLowPrice(): Waiting for buy offer to finish");
 		// Wait till this offer is done
-		waitTill = Util.secondsLater(60*3);
+		waitTill = Util.secondsLater(LONGEST_WAIT_TIME_SECONDS);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(boughtItem.getStatus() == RSGEOffer.STATUS.COMPLETED) {
@@ -690,7 +723,7 @@ public class GE {
 				}
 			}
 		}
-		
+		Network.updateSubTask("Opening offer");
 		// Wait till this offer is done
 		if(boughtItem.getStatus() != RSGEOffer.STATUS.COMPLETED) {
 			Util.log("checkLowPrice(): Offer took too long");
@@ -721,7 +754,7 @@ public class GE {
 			if(!GrandExchange.goToSelectionWindow()) {
 				return -4;
 			}
-			
+			Network.updateSubTask("LOW price: "+cost);
 			return cost;
 		}
 	}
@@ -738,6 +771,7 @@ public class GE {
 			return false;
 		}
 		
+		Network.updateSubTask("Canceling offers");
 		// Wait till we're at the main offer screen
 		long waitTill = Util.secondsLater(5);
 		while(Util.time() < waitTill) {
@@ -777,6 +811,7 @@ public class GE {
 				break;
 		    }
 		}
+		Network.updateSubTask("All offers canceled");
 		
 		Util.log("collectAndCancel(): Collecting all offers");
 		if(anythingInGE) {
@@ -845,7 +880,6 @@ public class GE {
 	public static boolean sellInventory() {
 		// Util.log("sellInventory(): ");
 		
-		
 		if(!GE.isInGE()) {
 			Util.log("sellInventory(): Not in GE");
 			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
@@ -859,17 +893,34 @@ public class GE {
 		}
 		
 		Util.log("sellInventory(): Selling inventory");
+		Network.updateSubTask("Items: " + Inventory.getAll().length);
 		int sellPriceOffset = 2;
-		while(Inventory.getAll().length > 1) {
+		
+		int minInventoryLength = 1;
+		while(Inventory.getAll().length > minInventoryLength) {
+			minInventoryLength = 1;
 			Util.log("sellInventory(): inventory loop started");
 			// Loop through the items and sell them all
 			for(RSItem item : Inventory.getAll()) {
+				Util.log("sellInventory(): item: "+item.name+" count: "+item.getStack());
 				if(item.name.equalsIgnoreCase("coins")) {
 					Util.log("sellInventory(): ignoring coins");
 					continue;
 				}
 				
+				// If the stack is only 1 item
+				if(item.getStack() == 1) {
+					Util.log("sellInventory(): ignoring "+item.name+" stack size 1");
+					minInventoryLength++;
+					continue;
+				}
+				
 				int sellPrice = checkHighPrice(item);
+				
+				if(sellPrice < 0) {
+					JrProcessor.setStatus(JrProcessor.STATUS.SELL_INVENTORY_ERROR);
+					return false;
+				}
 				
 				GE.collectAndCancel();
 				
@@ -889,14 +940,20 @@ public class GE {
 			sellPriceOffset *= 5;
 			// If there are no more items to sell, check to see if any offers are taking too long
 			GE.waitThenCancel();
-			Util.randomSleepRange(4000, 6000);
+			Util.randomSleepRange(1000, 2000);
 		}
 		
+		Bank.setMaxGPInBank(Inven.countCoins());
+		Util.log("sellInventory(): coins "+Inven.countCoins());
 		
+		Network.updateSubTask("Inventory Sold");
 		
 		Bank.setMaxGPInBank(Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0);
 		
 		JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
+		
+		
+		
 		return true;
 	}
 	
@@ -920,10 +977,11 @@ public class GE {
 	public static boolean waitThenCancel() {
 		//Util.log("waitThenCancel(): ");
 		// Calculate 3 minutes in the future
-		long endTime = Util.secondsLater(60*3);
+		long endTime = Util.secondsLater(LONGEST_WAIT_TIME_SECONDS);
 		
 		Util.log("waitThenCancel(): Waiting for offers to finish or time to run out");
 		
+		Network.updateSubTask("Waiting for offers to finish");
 		while(true) {
 			if(!GE.isInGE()) {
 				Util.log("waitThenCancel(): Not in GE");
@@ -931,12 +989,11 @@ public class GE {
 				return false;
 			}
 			
-			
 			// If the current time is larger than the end time
 			if(Util.time() > endTime) {
+				Util.log("waitThenCancel(): Time ran out");
 				break;
 			}
-			
 			
 			boolean isAllDone = true;
 			// Scan all the offers
@@ -948,6 +1005,7 @@ public class GE {
 			
 			// If there are no offers in progress
 			if(isAllDone) {
+				Util.log("waitThenCancel(): All offers finished");
 				break;
 			}
 				
@@ -973,6 +1031,7 @@ public class GE {
 		}
 		
 		//Util.log("closeGE(): ");
+		Network.updateSubTask("Closing GE");
 		Util.log("closeGE(): Closing GE");
 		if(!GrandExchange.close(true)) {
 			JrProcessor.setStatus(JrProcessor.STATUS.FAILED_CLOSING);
@@ -999,70 +1058,73 @@ public class GE {
 	 * @param offset How much to lower the buy price by
 	 * @return true if bought, false if fail
 	 */
-	public static boolean buyBestPrice(String itemName, int quantity, int offset) {
-		// Util.log("buyBestPrice(): xxxxxx");
-		if(!isInGE()) {
-			Util.log("buyBestPrice(): Not in GE");
-			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-			return false;
-		}
-		
-		Util.log("buyBestPrice(): Checking HIGH price");
-		// Get the highest price of the item
-		int highPrice = GE.checkHighPrice(itemName);
-		Util.log("buyBestPrice(): checkHighPrice() returned: " + highPrice);
-		
-		
-		// If any error was passed
-		if(highPrice < 0) {
-			return false;
-		}		
-		
-		if(!isInGE()) {
-			Util.log("buyBestPrice(): Not in GE");
-			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-			return false;
-		}
-		
-		
-		int lowPrice = 0;
-		// If the high price is low, dont bother getting the low price
-		if(highPrice <= 100) {
-			lowPrice = highPrice;
-			Util.log("buyBestPrice(): High price is low, using it to buy.");
-		}else {
-			// Find the item in the inventory
-			RSItem[] items = Inventory.find(itemName);
-			
-			// If no item is in the inventory
-			if(items.length == 0) {
-				JrProcessor.setStatus(JrProcessor.STATUS.NO_INVENTORY_ITEM);
-				return false;
-			}
-			
-			Util.log("buyBestPrice(): Checking LOW price");
-			// Get the low price of the item
-			lowPrice = GE.checkLowPrice(items[0]);
-			Util.log("buyBestPrice(): checkLowPrice() returned: " + highPrice);
-			
-			
-			if(!isInGE()) {
-				Util.log("buyBestPrice(): Not in GE");
-				JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-				return false;
-			}
-			
-			// If any error was passed
-			if(lowPrice < 0) {
-				return false;
-			}	
-		}
-		
-		return GE.openBuyOffer(itemName, lowPrice + offset, quantity);
-	}
+//	private static boolean buyBestPrice(String itemName, int quantity, int offset) {
+//		// Util.log("buyBestPrice(): xxxxxx");
+//		if(!isInGE()) {
+//			Util.log("buyBestPrice(): Not in GE");
+//			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+//			return false;
+//		}
+//		
+//		Util.log("buyBestPrice(): Checking HIGH price");
+//		// Get the highest price of the item
+//		int highPrice = GE.checkHighPrice(itemName);
+//		Util.log("buyBestPrice(): checkHighPrice() returned: " + highPrice);
+//		
+//		
+//		// If any error was passed
+//		if(highPrice < 0) {
+//			return false;
+//		}		
+//		
+//		if(!isInGE()) {
+//			Util.log("buyBestPrice(): Not in GE");
+//			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+//			return false;
+//		}
+//		
+//		
+//		int lowPrice = 0;
+//		// If the high price is low, dont bother getting the low price
+//		if(highPrice <= 100) {
+//			lowPrice = highPrice;
+//			Util.log("buyBestPrice(): High price is low, using it to buy.");
+//		}else {
+//			// Find the item in the inventory
+//			RSItem[] items = Inventory.find(itemName);
+//			
+//			// If no item is in the inventory
+//			if(items.length == 0) {
+//				JrProcessor.setStatus(JrProcessor.STATUS.NO_INVENTORY_ITEM);
+//				return false;
+//			}
+//			
+//			Util.log("buyBestPrice(): Checking LOW price");
+//			// Get the low price of the item
+//			lowPrice = GE.checkLowPrice(items[0]);
+//			Util.log("buyBestPrice(): checkLowPrice() returned: " + highPrice);
+//			
+//			
+//			if(!isInGE()) {
+//				Util.log("buyBestPrice(): Not in GE");
+//				JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+//				return false;
+//			}
+//			
+//			// If any error was passed
+//			if(lowPrice < 0) {
+//				return false;
+//			}	
+//		}
+//		
+//		return GE.openBuyOffer(itemName, lowPrice + offset, quantity);
+//	}
 
 
 	public static int[] findLowHigh(String itemName) {
+		
+		Network.updateSubTask("Finding HIGH/LOW of: "+itemName);
+		Util.log("Finding HIGH/LOW of: "+itemName);
 		// Util.log("buyBestPrice(): xxxxxx");
 		if(!isInGE()) {
 			Util.log("findLowHigh(): Not in GE");

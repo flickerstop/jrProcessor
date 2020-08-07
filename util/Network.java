@@ -26,8 +26,8 @@ import scripts.objects.ProcessingObject;
 public class Network {
 
 	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
-	private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	//private static String urlStart = "http://flickerstop.com"; // BANK
+	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	private static String urlStart = "http://flickerstop.com"; // BANK
 	
 	
 	private static String playerName = "";
@@ -37,7 +37,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	private static String version = "v1.00";
+	private static String version = "v1.02";
 	
 	public static String[] getNextItem() {
 		
@@ -144,6 +144,8 @@ public class Network {
         params.put("position", position);
         params.put("startTime", startTime);
         params.put("world", WorldHopper.getWorld());
+        params.put("mainTask", JrProcessor.getStateString());
+        
         
     	params.put("item1Name", JrProcessor.currentProcess == null ? null : JrProcessor.currentProcess.item1);
         params.put("item1Count", JrProcessor.currentProcess == null ? null : ItemProcessManager.getItem1Total());

@@ -11,7 +11,9 @@ import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
 
+import scripts.JrProcessor;
 import scripts.util.Bank;
+import scripts.util.Network;
 import scripts.util.Util;
 
 public class ProcessingObject {
@@ -56,6 +58,8 @@ public class ProcessingObject {
 	
 	public boolean inInventory() {
 		
+		Network.updateSubTask("Process Type: "+processType);
+		
 		try {
 			RSItem item1 = Inventory.find(this.item1)[0];
 			RSItem item2 = Inventory.find(this.item2).length != 0 ? Inventory.find(this.item2)[0] : null;
@@ -77,6 +81,7 @@ public class ProcessingObject {
 		////////////////////////////////////
 		// Normal AFK item making
 		if(processType == 0 || processType == 6) {
+			Network.updateSubTask("Using item together and waiting");
 			// Get the array of all the locations of the items in the inventory
 			RSItem item1Array[] = Inventory.find(this.item1);
 			RSItem item2Array[] = Inventory.find(this.item2);
@@ -222,6 +227,7 @@ public class ProcessingObject {
 				
 			}
 		}else if(processType == 1) { // Using items together over and over
+			Network.updateSubTask("Using item together over and over");
 			
 			// Loop while item 1 still exists
 			while(Inventory.getCount(this.item1) > 0) {
@@ -245,6 +251,7 @@ public class ProcessingObject {
 				
 			}
 		}else if(processType == 2) { // cleaning herbs
+			Network.updateSubTask("Cleaning herbs");
 			while(Inventory.getCount(this.item1) > 0) {
 				RSItem item1Array[] = Inventory.find(this.item1);
 				int amountTotal = Inventory.find(this.item1).length;
@@ -415,6 +422,7 @@ public class ProcessingObject {
 	}
 	
 	public boolean inBank() {
+		Network.updateSubTask("Process Type: "+processType);
 		Util.randomSleep();
 		
 		ItemProcessManager.setItem1Total(Banking.find(this.item1).length != 0 ? Banking.find(this.item1)[0].getStack() : 0);

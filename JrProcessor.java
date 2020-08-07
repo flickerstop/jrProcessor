@@ -38,7 +38,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	private static final int MIN_OFFSET = 10;
 	private static int offset = MIN_OFFSET;
 	
-	private static final int MAX_ITEMS = 28;
+	private static final int MAX_ITEMS = 1000;
 	
 	public static final int MIN_COINS = 400000;
 	
@@ -61,7 +61,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    NO_INVENTORY_ITEM,
 	    ITEM_IN_GE,
 	    GENERAL_FAIL,
-	    TOOK_TOO_LONG
+	    TOOK_TOO_LONG,
+	    SELL_INVENTORY_ERROR,
+	    BUYING_1GP_ERROR
 	  }
 	
 	@Override
@@ -91,13 +93,18 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 		
 		
+					
 		while(isRunning) {
-			try {
-				Network.updateJrProcessor();
-			} catch (Exception e) {
-				Util.log("run(): Error updateJrProcessor()");
-				e.printStackTrace();
-			}
+			//Network.updateSubTask("aaaaaaaaaaaaaa");
+			Network.updateSubTask("Getting new state");
+			
+			// Output the next states
+//			String allStates = "";
+//			for(int state : stateOrder) {
+//				allStates += state+"->";
+//			}
+//			Util.log(allStates);
+			
 			// Check if we need a new state path
 			if(stateOrder.size() == 0) {
 				stateOrder.addAll(Arrays.asList(2,10,14,15));
@@ -106,17 +113,25 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 			// Get the next state
 			currentState = stateOrder.removeFirst();
+			try {
+				Network.updateJrProcessor();
+			} catch (Exception e) {
+				Util.log("run(): Error updateJrProcessor()");
+				e.printStackTrace();
+			}
 			
 			switch(currentState) {
 			////////////////////////////////////////////////////////////////
 			case 1: // Open GE
 				if(!GE.openGE()) {
+					Network.updateSubTask("Failed opening GE");
 					Util.log("run(): Failed opening GE");
 				}
 				break;
 			////////////////////////////////////////////////////////////////
 			case 2: // Close GE
 				if(!GE.closeGE()) {
+					Network.updateSubTask("Failed closing GE");
 					Util.log("run(): Failed closing GE");
 				}
 				break;
@@ -125,8 +140,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				if(!GE.sellInventory()) {
 					// If the issue was there was no items in the inventory
 					if(status == STATUS.NO_INVENTORY_ITEM) {
+						Network.updateSubTask("No items in inventory");
 						// But there are more than 500k
 						if(Inven.countCoins() > 500000) {
+							Network.updateSubTask("Coins in inventory, success");
 							// Call it a success
 							status = STATUS.SUCCESS;
 						}
@@ -165,7 +182,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
                 			
                 			int vialsToBuy = (Bank.herbsInBank * 15) > totalCoins ? totalCoins/15:Bank.herbsInBank;
                 			
-                			GE.openBuyOffer("Vial of water", 15, vialsToBuy);
+                			if(!GE.openBuyOffer("Vial of water", 15, vialsToBuy)){
+                				break;
+                			}
                 		}
                 		
                 		break;
@@ -284,6 +303,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case 12: // empty bank
 				if(!Bank.emptyBank()) {
 					Util.log("run(): Unable to empty bank");
+					stateOrder.addAll(Arrays.asList(11,10,12));
 				}
 				break;
 			////////////////////////////////////////////////////////////////
@@ -326,7 +346,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 				if(hasNoTask) {
 					// Only if there are no processes to do after 5 checks
-					stateOrder.addAll(Arrays.asList(10,12,13,11,1,3,4,5));
+					stateOrder.addAll(Arrays.asList(10,14,12,13,11,1,3,4,5));
 				}
 				
 				
@@ -355,6 +375,13 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				break;
 			////////////////////////////////////////////////////////////////
 			case 22: // Process item in inventory
+				
+				if(Banking.isBankScreenOpen()) {
+					stateOrder.addFirst(20);
+					stateOrder.addFirst(11);
+					break;
+				}
+				
 				if(currentProcess != null) {
 					if(!currentProcess.inInventory()) {
 						Util.log("run(): Unable to process in inventory");
@@ -404,6 +431,16 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				isRunning = false;
 				Util.log("STATUS: Placement error! Stopping bot");
 				Login.logout();
+				break;
+				
+			case SELL_INVENTORY_ERROR:
+				Util.log("STATUS: Couldn't sell inventory, retrying!");
+				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,3));
+				break;
+			
+			case BUYING_1GP_ERROR:
+				Util.log("STATUS: Trying to buy item for 1gp, retrying!");
+				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,3));
 				break;
 				
 			case FAILED_CLOSING:
