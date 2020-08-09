@@ -27,7 +27,7 @@ public class Network {
 
 	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
 	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	private static String urlStart = "http://flickerstop.com"; // BANK
+	private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -37,7 +37,8 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	private static String version = "v1.02";
+	private static String version = "v1.03";
+	
 	
 	public static String[] getNextItem() {
 		
@@ -105,6 +106,27 @@ public class Network {
 		String output[] = {name,world};
 		
 		return output;
+		
+	}
+	
+	public static String getServerStatus(){
+		String data = "null";
+		try {
+			data = getHTML(urlStart+"/get/bot/serverCheck");
+		} catch (Exception e) {
+			Util.log("getServerStatus(): ERROR");
+			e.printStackTrace();
+			return "null";
+		}
+		
+		if(data.equalsIgnoreCase("none")) {
+			return "null";
+		}
+		
+		Util.log("getServerStatus(): "+data);
+		
+		
+		return data;
 		
 	}
 	

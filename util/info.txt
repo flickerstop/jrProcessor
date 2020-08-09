@@ -26,6 +26,7 @@ STATES
 13  Count herbs/vials
 14  deposit all
 15  find what to do next
+16  leave 1m in bank
 
 
 
@@ -33,6 +34,9 @@ STATES
 21  process in bank
 22  process in inventory
 
+30  breaking
+31  login
+32  idle (wait for bank to trade)
 
 
 POST TYPES (/post/bot)

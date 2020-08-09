@@ -31,6 +31,9 @@ public class Util{
 	private static long lastLogSend = Util.time();
 	private static final long TIME_BETWEEN_LOG = 30000L;
 	
+	
+
+	
 	/**
 	 * Sleeps for a random number of milliseconds 
 	 */
@@ -131,6 +134,9 @@ public class Util{
 			dataLog.clear();
 			lastLogSend = Util.time();
 		}
+		
+		
+		
 	}
 	
 	public static void log(int output) {

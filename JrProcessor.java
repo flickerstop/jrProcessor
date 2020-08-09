@@ -5,9 +5,11 @@ import java.util.Date;
 import java.util.LinkedList;
 
 import org.tribot.api.General;
+import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Login;
+import org.tribot.api2007.Player;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.Breaking;
@@ -49,6 +51,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	private static STATUS status = STATUS.NONE;
 	private static int currentState = 0;
 	
+	
+	private static final long TIME_BETWEEN_SERVER_CHECK = 60000L;
+	private static long lastServerCheck = Util.time() + TIME_BETWEEN_SERVER_CHECK;
+	
 	public static enum STATUS {
 		NONE,
 		SUCCESS,
@@ -63,8 +69,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    GENERAL_FAIL,
 	    TOOK_TOO_LONG,
 	    SELL_INVENTORY_ERROR,
-	    BUYING_1GP_ERROR
-	  }
+	    BUYING_1GP_ERROR, 
+	    BUYING_OVER_PRICE_ERROR, 
+	    LEAVE_1M_ERROR
+	}
 	
 	@Override
 	public void onStart() {
@@ -76,15 +84,23 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	public void run() {
 		//Util.log("run(): ");
 		Util.clearConsole();
+		this.setLoginBotState(false);
 		
 		Util.log("run(): suspending antiban");
 		suspendAntiban();
 		
 		if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
 			Util.log("run(): logging in");
-			Login.login();
+			if(!Login.login()) {
+				if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.BANNED) {
+					isRunning = false;
+				}
+			}
 		}
 		Util.log("run(): network init");
+		
+		Util.log("run(): Name: "+Player.getRSPlayer().getName());
+		
 		Network.init("jrProcessor");
 		
 		
@@ -95,15 +111,46 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 					
 		while(isRunning) {
+			// Check if we are logged out
+			if(Login.getLoginState() != Login.STATE.INGAME) {
+				Util.log("run(): Account not logged in!");
+				stateOrder.addFirst(31);
+			}
+			
+			// Check if we should check in with the server
+			if((lastServerCheck + TIME_BETWEEN_SERVER_CHECK) <= Util.time()) {
+				// Check in with the server
+				switch(Network.getServerStatus()) {
+				case "null":
+					
+					break;
+					
+				case "nominal":
+					
+					break;
+				
+				case "sellAndWait":
+					stateOrder.clear();
+					stateOrder.addAll(Arrays.asList(2,10,14,12,11,1,3,6,4,2,10,16,11,32));
+					break;
+					
+				default:
+					break;
+				
+				}
+			}
+			
+			
+			
 			//Network.updateSubTask("aaaaaaaaaaaaaa");
 			Network.updateSubTask("Getting new state");
 			
 			// Output the next states
-//			String allStates = "";
-//			for(int state : stateOrder) {
-//				allStates += state+"->";
-//			}
-//			Util.log(allStates);
+			String allStates = "";
+			for(int state : stateOrder) {
+				allStates += state+"->";
+			}
+			Util.log(allStates);
 			
 			// Check if we need a new state path
 			if(stateOrder.size() == 0) {
@@ -303,7 +350,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case 12: // empty bank
 				if(!Bank.emptyBank()) {
 					Util.log("run(): Unable to empty bank");
-					stateOrder.addAll(Arrays.asList(11,10,12));
+					stateOrder.addAll(Arrays.asList(11,10,14,12));
 				}
 				break;
 			////////////////////////////////////////////////////////////////
@@ -350,6 +397,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 				
 				
+				break;
+				
+			////////////////////////////////////////////////////////////////
+			case 16:
+				if(!Bank.leave1mInBank()) {
+					stateOrder.clear();
+					stateOrder.addAll(Arrays.asList(2,10,14,12,11,1,3,6,4,2,10,16,11,32));
+				}
 				break;
 		
 			////////////////////////////////////////////////////////////////
@@ -412,8 +467,47 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				Login.login();
 				
 				break;
-			}
 			
+			
+			
+			////////////////////////////////////////////////////////////////
+			case 31:
+				
+				if(!Login.login()) {
+					if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.BANNED) {
+						isRunning = false;
+						Util.log("ACCOUNT BANNED!");
+						try {
+							Network.announceCrash();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						Network.updateMainTask("ACCOUNT BANNED!");
+						Network.updateSubTask("Weath: +10xp");
+					}
+				}
+				
+				break;
+			
+			////////////////////////////////////////////////////////////////
+			case 32:
+				long waitUntil = Util.secondsLater(60*45);
+				while(true) {
+					Util.randomSleepRange(60000, 180000);
+					Mouse.randomRightClick();
+					Mouse.leaveGame(true);
+					if(Util.time() > waitUntil) {
+						break;
+					}
+				}
+				
+				Login.logout();
+				isRunning = false;
+				
+				break;
+			////////////////////////////////////////////////////////////////
+			}
 			// Handle errors
 			switch(status) {
 			case SUCCESS:
@@ -441,6 +535,11 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case BUYING_1GP_ERROR:
 				Util.log("STATUS: Trying to buy item for 1gp, retrying!");
 				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,3));
+				break;
+				
+			case BUYING_OVER_PRICE_ERROR:
+				Util.log("STATUS: Trying to buy item for over x2 the guide price");
+				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,4,3,5));
 				break;
 				
 			case FAILED_CLOSING:
@@ -573,6 +672,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 		case 30:
 			return "Breaking...";
+			
+		case 31:
+			return "Login...";
 			
 		default:
 			return "INVALID STATE";

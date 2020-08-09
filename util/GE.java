@@ -332,6 +332,12 @@ public class GE {
 				}
 			}
 			
+		}else if(buyPrice > (GrandExchange.getGuidePrice()*2)){
+			Util.log("openBuyOffer(): Attempting to buy item for double guide price!");
+			Util.log("openBuyOffer(): Guide: "+GrandExchange.getGuidePrice());
+			Util.log("openBuyOffer(): Buy offer: "+buyPrice);
+			JrProcessor.setStatus(JrProcessor.STATUS.BUYING_OVER_PRICE_ERROR);
+			return false;
 		}else if(buyPrice == 1) {
 			JrProcessor.setStatus(JrProcessor.STATUS.BUYING_1GP_ERROR);
 			return false;

@@ -17,6 +17,7 @@ import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
 
+import scripts.JrProcessor;
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 
@@ -455,6 +456,21 @@ public class Bank {
 		if(newMaxGPInBank > maxGPInBank) {
 			maxGPInBank = newMaxGPInBank;
 		}
+	}
+	
+	public static boolean leave1mInBank() {
+		
+		int coinsInBank = Banking.find("Coins")[0].getStack();
+		
+		Util.log("leave1mInBank(): Leaving 1m in the bank");
+		
+		if(!Banking.withdraw(coinsInBank-1000000, "Coins")) {
+			Util.log("leave1mInBank(): Unable to withdraw 1m");
+			JrProcessor.setStatus(JrProcessor.STATUS.LEAVE_1M_ERROR);
+			return false;
+		}
+		
+		return true;
 	}
 
 }
