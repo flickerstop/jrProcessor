@@ -99,6 +99,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		}
 		Util.log("run(): network init");
 		
+		Util.log("run(): "+Network.version);
+		
 		Util.log("run(): Name: "+Player.getRSPlayer().getName());
 		
 		Network.init("jrProcessor");
