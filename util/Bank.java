@@ -1,20 +1,14 @@
 package scripts.util;
 
-import java.util.Date;
 
-import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Game;
 import org.tribot.api2007.GrandExchange;
-import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
-import org.tribot.api2007.Login;
-import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.types.RSItem;
-import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
 
 import scripts.JrProcessor;
@@ -104,8 +98,23 @@ public class Bank {
 //			Util.randomSleepRange(1000*60*60*24, 1000*60*60*25, false);
 //		}
 		
+		// Check if we're withdrawing X
 		if(Banking.getWithdrawQuantity() != Banking.WITHDRAW_QUANTITY.WITHDRAW_X) {
+			Util.log("openBank(): Withdraw X not set, setting now!");
+			Util.randomSleep();
 			Banking.setWithdrawQuantity(Banking.WITHDRAW_QUANTITY.WITHDRAW_X);
+			Util.randomSleep();
+		}
+		
+		// Check if placeholders are on
+		if(!Banking.arePlaceholdersOn()) {
+			Util.log("openBank(): placeholders not set, setting now!");
+			Util.randomSleep();
+			Mouse.moveBox(350, 298, 379, 327);
+			Util.randomSleep();
+			Mouse.click(1);
+			Util.randomSleep();
+			
 		}
 		
 		gpInBank = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
@@ -169,7 +178,7 @@ public class Bank {
 	 * Empty's all the finished products from the bank
 	 * @return 
 	 */
-	public static boolean emptyBank() {
+	public static boolean emptyBank(boolean isNuke) {
 		// Util.log("emptyBank(): ");
 		
 		if(!Bank.openBank()) {
@@ -191,7 +200,7 @@ public class Bank {
 		for(ProcessingObject obj : ItemProcessManager.getListOfProcesses()) {
 			// Check if more than 1 in the bank
 			int amount = Banking.find(obj.result).length != 0 ? Banking.find(obj.result)[0].getStack() : 0;
-			if(amount < 10) {
+			if(amount < 10 && !isNuke) {
 				continue;
 			}
 			if(amount > 0) {
@@ -201,7 +210,7 @@ public class Bank {
 			
 			// Check if more than 1 in the bank
 			amount = Banking.find(obj.item1).length != 0 ? Banking.find(obj.item1)[0].getStack() : 0;
-			if(amount < 10) {
+			if(amount < 10 && !isNuke) {
 				continue;
 			}
 			if(amount > 0) {
@@ -211,9 +220,15 @@ public class Bank {
 			
 			// Check if more than 1 in the bank
 			amount = Banking.find(obj.item2).length != 0 ? Banking.find(obj.item2)[0].getStack() : 0;
-			if(amount < 10) {
+			if(amount < 10 && !isNuke) {
 				continue;
 			}
+			
+			// Vial of water is always item #2
+			if(obj.item2.equalsIgnoreCase("Vial of water") && !isNuke) {
+				continue;
+			}
+			
 			if(amount > 0) {
 				Banking.withdraw(0, obj.item2);
 				Util.randomSleep();
@@ -222,7 +237,14 @@ public class Bank {
 		
 		Util.log("emptyBank(): Grabbing coins");
 		Bank.grabCoins();
-		Util.randomSleep();
+		
+		long waitTill = Util.secondsLater(5);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(Banking.find("Coins").length == 0) {
+		    	break;
+		    }
+		}
 		
 		// Check to make sure coins are in inventory
 		if(Inventory.find("Coins").length == 0 || Banking.find("Coins").length != 0) {
@@ -282,114 +304,6 @@ public class Bank {
 		}
 		
 		Util.randomSleep();
-		return true;
-	}
-	
-	/**
-	 * Converts the amount of GP in your inventory/bank to plat tokens
-	 * @return 
-	 */
-	public static boolean convertToPlatTokens() {
-		//Util.log("convertToPlatTokens(): ");
-		
-		Util.log("convertToPlatTokens(): Counting coins");
-		// Get the amount of coins in the inventory
-		int inventoryCoins = Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0;
-		int bankCoins = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
-		
-		if(bankCoins > 0) {
-			if(!Banking.withdraw(0, "Coins")) {
-				Util.log("convertToPlatTokens(): Failed to take coins out");
-				return false;
-			}
-			Util.randomSleep();
-		}
-		
-		int totalCoins = bankCoins+inventoryCoins;
-		
-		Util.log("convertToPlatTokens(): putting "+GP_TO_USE+" back in bank");
-		// leave 2m in the bank
-		Banking.deposit(GP_TO_USE, "Coins");
-		
-		Util.randomSleep();
-		
-		Util.log("convertToPlatTokens(): Closing bank");
-		// Close the bank
-		if(!Banking.close()) {
-			Util.log("convertToPlatTokens(): Failed to close bank");
-			return false;
-		}
-		
-		Util.randomSleep();
-		
-		
-		Util.log("convertToPlatTokens(): Finding banker");
-		// Use the coins on the banker
-		RSNPC closestNPC = null;
-		int closestNPCDistance = Integer.MAX_VALUE;
-		// Loop through all NPCs with the correct name
-		for(RSNPC npc : NPCs.find("Banker")) {
-			int distance = Player.getPosition().distanceTo(npc.getPosition());
-			
-			if(distance < closestNPCDistance) {
-				closestNPCDistance = distance;
-				closestNPC = npc;
-			}
-		}
-		
-		Util.log("convertToPlatTokens(): Using coins on banker");
-		// Click the coins
-		Inventory.find("Coins")[0].click();
-		Util.randomSleepRange(2000, 4000);
-		closestNPC.click("Use Coins -> Banker");
-		
-		Util.log("convertToPlatTokens(): Waiting for chat box");
-		long waitTill = Util.secondsLater(5);
-		while(Util.time() < waitTill) {
-		    Util.randomSleep();
-		    if(Interfaces.get(219) != null) {
-				break;
-			}
-		}
-		
-		waitTill = Util.secondsLater(10);
-		Util.log("convertToPlatTokens(): typing 1 in chat");
-		while(true) {
-			Keyboard.sendType('1');
-			Util.randomSleep();
-
-			// If the current time is larger than the end time
-			if(Util.time() > waitTill) {
-				Util.log("convertToPlatTokens(): Waited long enough");
-				break;
-			}
-			
-			if(Interfaces.get(219) == null) {
-				break;
-			}
-		}
-		Util.randomSleepRange(2000, 4000);
-		
-		// if there are no plat tokens
-		if(Inventory.find("Platinum token").length != 0) {
-			Util.log("convertToPlatTokens(): No plat found in inventory");
-			return false;
-		}
-		
-		return true;
-	}
-
-	
-	public static boolean takeOutPlat() {
-		Util.log("takeOutPlat(): Depositing inventory");
-		Banking.depositAll();
-		Util.randomSleep();
-		// Take out plat tokens
-		Util.log("takeOutPlat(): Taking out plat tokens");
-		if(!Banking.withdraw(0, "Platinum token")) {
-			Util.log("takeOutPlat(): failed taking out Plat");
-			return false;
-		}
 		return true;
 	}
 	

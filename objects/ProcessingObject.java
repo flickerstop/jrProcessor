@@ -1,7 +1,6 @@
 package scripts.objects;
 
 import java.util.Date;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
@@ -11,7 +10,6 @@ import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
 
-import scripts.JrProcessor;
 import scripts.util.Bank;
 import scripts.util.Network;
 import scripts.util.Util;
@@ -90,13 +88,13 @@ public class ProcessingObject {
 			int randomNumItem1 = 0;
 			int randomNumItem2 = 0;
 			
-			int maxItemsBack = 6;
+			//int maxItemsBack = 6;
 			
 			boolean skipinterface = false;
 			
-			if(item1Array.length < 6 || item2Array.length < 6) {
-				maxItemsBack = 0;
-			}
+//			if(item1Array.length < 6 || item2Array.length < 6) {
+//				maxItemsBack = 0;
+//			}
 			
 			if(item1Array.length == 1 || item2Array.length == 1) {
 				skipinterface = true;

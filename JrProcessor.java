@@ -1,13 +1,10 @@
 package scripts;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 
-import org.tribot.api.General;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
-import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Player;
 import org.tribot.script.Script;
@@ -15,7 +12,6 @@ import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.Breaking;
 import org.tribot.script.interfaces.Ending;
 import org.tribot.script.interfaces.MessageListening07;
-import org.tribot.script.interfaces.Pausing;
 import org.tribot.script.interfaces.PreBreaking;
 import org.tribot.script.interfaces.Starting;
 
@@ -109,10 +105,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		// Starting order
 		stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
 		
-		
+		// testing mule
+		//stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
 		
 					
 		while(isRunning) {
+			Util.log("========================================");
 			// Check if we are logged out
 			if(Login.getLoginState() != Login.STATE.INGAME) {
 				Util.log("run(): Account not logged in!");
@@ -120,7 +118,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			}
 			
 			// Check if we should check in with the server
-			if((lastServerCheck + TIME_BETWEEN_SERVER_CHECK) <= Util.time()) {
+			if((lastServerCheck + TIME_BETWEEN_SERVER_CHECK) <= Util.time() && !isTradeTime) {
+				lastServerCheck = Util.time();
 				// Check in with the server
 				switch(Network.getServerStatus()) {
 				case "null":
@@ -133,7 +132,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 				case "sellAndWait":
 					stateOrder.clear();
-					stateOrder.addAll(Arrays.asList(2,10,14,12,11,1,3,6,4,2,10,16,11,32));
+					stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
+					isTradeTime = true;
 					break;
 					
 				default:
@@ -162,6 +162,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 			// Get the next state
 			currentState = stateOrder.removeFirst();
+			Util.log("run(): State: "+getStateString());
 			try {
 				Network.updateJrProcessor();
 			} catch (Exception e) {
@@ -187,11 +188,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			////////////////////////////////////////////////////////////////
 			case 3: // sell inventory
 				if(!GE.sellInventory()) {
+					Util.log("run(): Sell inventory error");
 					// If the issue was there was no items in the inventory
 					if(status == STATUS.NO_INVENTORY_ITEM) {
+						Util.log("run(): No items in inventory");
 						Network.updateSubTask("No items in inventory");
 						// But there are more than 500k
 						if(Inven.countCoins() > 500000) {
+							Util.log("run(): >500k Coins in inventory, ignoring error");
 							Network.updateSubTask("Coins in inventory, success");
 							// Call it a success
 							status = STATUS.SUCCESS;
@@ -350,9 +354,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				break;
 			////////////////////////////////////////////////////////////////
 			case 12: // empty bank
-				if(!Bank.emptyBank()) {
+				if(!Bank.emptyBank(false)) {
 					Util.log("run(): Unable to empty bank");
-					stateOrder.addAll(Arrays.asList(11,10,14,12));
+					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(11,10,14,12));
 				}
 				break;
 			////////////////////////////////////////////////////////////////
@@ -408,7 +412,13 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					stateOrder.addAll(Arrays.asList(2,10,14,12,11,1,3,6,4,2,10,16,11,32));
 				}
 				break;
-		
+			////////////////////////////////////////////////////////////////
+			case 17: // empty bank
+				if(!Bank.emptyBank(false)) {
+					Util.log("run(): Unable to empty bank");
+					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(11,10,14,12));
+				}
+				break;
 			////////////////////////////////////////////////////////////////
 							
 			////////////////////////////////////////////////////////////////
@@ -531,17 +541,17 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 			case SELL_INVENTORY_ERROR:
 				Util.log("STATUS: Couldn't sell inventory, retrying!");
-				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,3));
+				stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(2,10,14,12,13,11,1,3));
 				break;
 			
 			case BUYING_1GP_ERROR:
 				Util.log("STATUS: Trying to buy item for 1gp, retrying!");
-				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,3));
+				stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,12,13,11,1,3));
 				break;
 				
 			case BUYING_OVER_PRICE_ERROR:
 				Util.log("STATUS: Trying to buy item for over x2 the guide price");
-				stateOrder.addAll(Arrays.asList(2,10,14,12,13,11,1,4,3,5));
+				stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,12,13,11,1,4,3,5));
 				break;
 				
 			case FAILED_CLOSING:
@@ -551,6 +561,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case ITEM_IN_GE:
 			case GENERAL_FAIL:
 			case TOOK_TOO_LONG:
+				break;
+				
+			default:
 				break;
 			}
 			
@@ -603,6 +616,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	@Override
 	public void onEnd() {
 		try {
+			Util.forceLog();
 			Network.announceCrash();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

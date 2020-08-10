@@ -1,9 +1,9 @@
 package scripts.util;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.General;
@@ -141,6 +141,26 @@ public class Util{
 	
 	public static void log(int output) {
 		log(output + "");
+	}
+	
+	public static void forceLog() {
+		// Build the output string
+		String outputString = "";
+		for(String logRow : dataLog) {
+			outputString += logRow + "\n";
+		}
+		
+		// Try to send the log
+		try {
+			Network.sendLog(outputString);
+		} catch (Exception e) {
+			System.out.println("Log(): Error sending log to server");
+			e.printStackTrace();
+		}
+		
+		// Clear the log and reset the time
+		dataLog.clear();
+		lastLogSend = Util.time();
 	}
 	
 	public static void waitTillMovingStops() {
@@ -327,5 +347,14 @@ public class Util{
 			}
 		}
 		return null;
+	}
+	
+	public static LinkedList<Integer> addToStartOfArray(LinkedList<Integer> oldList, List<Integer> newValues){
+		
+		LinkedList<Integer> newList = new LinkedList<Integer>();
+		newList.addAll(newValues);
+		newList.addAll(oldList);
+		
+		return newList;
 	}
 }

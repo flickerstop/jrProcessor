@@ -1,6 +1,5 @@
 package scripts.util;
 
-import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.tribot.api.input.Keyboard;
@@ -332,7 +331,7 @@ public class GE {
 				}
 			}
 			
-		}else if(buyPrice > (GrandExchange.getGuidePrice()*2)){
+		}else if(buyPrice > (GrandExchange.getGuidePrice()*2) && !itemName.equalsIgnoreCase("Vial of water")){
 			Util.log("openBuyOffer(): Attempting to buy item for double guide price!");
 			Util.log("openBuyOffer(): Guide: "+GrandExchange.getGuidePrice());
 			Util.log("openBuyOffer(): Buy offer: "+buyPrice);
@@ -865,6 +864,52 @@ public class GE {
 		
 	}
 	
+	public static boolean collectCompleted() {
+		if(!GE.isInGE()) {
+			Util.log("collectCompleted(): not in GE");
+			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+			return false;
+		}
+		
+		// Wait till we're at the main offer screen
+		long waitTill = Util.secondsLater(5);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(GrandExchange.getWindowState() == GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
+				break;
+		    }
+		}
+		
+		if(GrandExchange.getWindowState() != GrandExchange.WINDOW_STATE.SELECTION_WINDOW) {
+			Util.log("collectCompleted(): Not in the GE");
+			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+			return false;
+	    }
+		
+		
+		boolean anythingInGE = false;
+		
+		// loop until no offers are found
+		for(RSGEOffer offer : GrandExchange.getOffers()) {
+			if(offer.getStatus() == RSGEOffer.STATUS.COMPLETED) {
+				anythingInGE = true;
+			}
+		}
+		
+		
+		Util.log("collectCompleted(): Collecting all offers");
+		if(anythingInGE) {
+			// Click the collect all button
+			Mouse.moveBox(414,61,492,76);
+			Util.randomSleep();
+			Mouse.click(1);
+			Util.randomSleep();
+		}
+		
+		JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
+		return true;
+	}
+	
 	/**
 	 * Counts the number of free spots on the GE
 	 * @return Number of free spots in the GE
@@ -914,29 +959,30 @@ public class GE {
 					continue;
 				}
 				
+				
+				int sellPrice = 0;
+				
 				// If the stack is only 1 item
-				if(item.getStack() == 1) {
-					Util.log("sellInventory(): ignoring "+item.name+" stack size 1");
-					minInventoryLength++;
-					continue;
+				if(item.getStack() <= 10) {
+					Util.log("sellInventory(): fastSelling "+item.name+" stack size under 10");
+					sellPrice = 1;
+				}else {
+					sellPrice = checkHighPrice(item);
 				}
 				
-				int sellPrice = checkHighPrice(item);
-				
+				// If there was an error getting the sell price
 				if(sellPrice < 0) {
 					JrProcessor.setStatus(JrProcessor.STATUS.SELL_INVENTORY_ERROR);
 					return false;
 				}
 				
-				GE.collectAndCancel();
-				
-				if(sellPrice <= 20) {
-					GE.openSellOffer(item, 1, 0);
+				if(sellPrice <= 50) {
+					GE.openSellOffer(item, sellPrice, 0);
 				}else {
 					GE.openSellOffer(item, sellPrice-8-sellPriceOffset, 0);
 				}
 				
-				
+				GE.collectCompleted();
 				
 				// If there are no free spots
 				if(numFreeSpots() == 0) {

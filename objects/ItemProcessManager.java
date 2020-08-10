@@ -156,7 +156,7 @@ public class ItemProcessManager {
 	
 	public static boolean canDoMethod(String items) {
 		String item1 = items.split(",")[0];
-		String item2 = items.split(",")[0];
+		//String item2 = items.split(",")[0];
 		for(ProcessingObject method : ItemProcessManager.getListOfProcesses()) {
 			if(method.item1.equalsIgnoreCase(item1)) {
 				return true;

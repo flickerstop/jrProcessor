@@ -11,23 +11,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.tribot.api2007.Banking;
-import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.Skills;
 import org.tribot.api2007.WorldHopper;
-import org.tribot.api2007.types.RSItem;
-import org.tribot.script.Script;
 
 import scripts.JrProcessor;
 import scripts.objects.ItemProcessManager;
-import scripts.objects.ProcessingObject;
 
 public class Network {
 
-	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
+	private static String urlStart = "http://192.168.2.32"; // LAPTOP
 	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	private static String urlStart = "http://flickerstop.com"; // Release
+	//private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -37,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v1.04";
+	public static String version = "v1.06";
 	
 	
 	public static String[] getNextItem() {
