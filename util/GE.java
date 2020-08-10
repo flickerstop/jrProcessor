@@ -640,6 +640,8 @@ public class GE {
 				return -4;
 			}
 			
+			GE.collectCompleted();
+			
 			Util.log("checkHighPrice(): Done");
 			Network.updateSubTask("High price:"+cost);
 			return cost;
@@ -759,6 +761,9 @@ public class GE {
 			if(!GrandExchange.goToSelectionWindow()) {
 				return -4;
 			}
+			
+			GE.collectCompleted();
+			
 			Network.updateSubTask("LOW price: "+cost);
 			return cost;
 		}

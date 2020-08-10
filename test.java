@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.tribot.api2007.Game;
 import org.tribot.api2007.GrandExchange;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.types.RSGEOffer;
@@ -35,7 +36,7 @@ public class test extends Script implements Starting, MessageListening07 {
 
 	@Override
 	public void run() {
-		Util.log(Util.getMembershipLeft());
+		System.out.println(Game.getSettingsArray());
 		
 	}
 	
