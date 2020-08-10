@@ -44,6 +44,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	public static ProcessingObject currentProcess = null;
 	public static LinkedList<Integer> stateOrder = new LinkedList<Integer>();
 	
+	private static int statusData = 0;
 	private static STATUS status = STATUS.NONE;
 	private static int currentState = 0;
 	
@@ -67,7 +68,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    SELL_INVENTORY_ERROR,
 	    BUYING_1GP_ERROR, 
 	    BUYING_OVER_PRICE_ERROR, 
-	    LEAVE_1M_ERROR
+	    LEAVE_1M_ERROR,
+	    MISSING_VIALS_OF_WATER
 	}
 	
 	@Override
@@ -339,6 +341,15 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
             		stateOrder.addFirst(4);
             	}
             	break;
+            	
+			////////////////////////////////////////////////////////////////
+			case 7:
+				if(!GE.buyVialsOfWater(statusData)) {
+					Util.log("run(): Unable to buy vials of water");
+				}else {
+					statusData = 0;
+				}
+			break;
             ////////////////////////////////////////////////////////////////	
 			////////////////////////////////////////////////////////////////
 			case 10: // open bank
@@ -375,7 +386,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case 15:
 				boolean hasNoTask = true;
 				// Loop 5 times to make sure no items are currently being transfered
-				for(int i = 0; i < 3; i++) {
+				for(int i = 0; i < 2; i++) {
 					// Search the bank for what items to process
 					currentProcess = ItemProcessManager.searchBank();
 					
@@ -420,9 +431,17 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 				break;
 			////////////////////////////////////////////////////////////////
+			case 18: // empty bank
+				if(!Bank.grabCoins()) {
+					Util.log("run(): Unable to withdraw coins");
+					stateOrder.clear();
+				}
+			break;
+			////////////////////////////////////////////////////////////////
 							
 			////////////////////////////////////////////////////////////////
 			case 20: // Check bank for next process
+				Util.log("run(): Looking for new process");
 				currentProcess = ItemProcessManager.searchBank();
 				if(currentProcess == null) {
 					Util.log("run(): No item to process");
@@ -554,6 +573,13 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,12,13,11,1,4,3,5));
 				break;
 				
+			case MISSING_VIALS_OF_WATER:
+				Util.log("STATUS: Has herbs, missing vials of water");
+				Util.log("STATUS: Buying # " + statusData);
+				stateOrder.clear();
+				stateOrder.addAll(Arrays.asList(10,14,18,11,1,7,2,10,14,15));
+				break;
+				
 			case FAILED_CLOSING:
 			case NEW_OFFER_ERROR:
 			case NO_FREE_OFFER:
@@ -644,6 +670,11 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		status = newStatus;
 	}
 	
+	public static void setStatus(STATUS newStatus, int newStatusData) {
+		status = newStatus;
+		statusData = newStatusData;
+	}
+	
 	private void resetStatus() {
 		status = STATUS.NONE;
 	}
@@ -662,6 +693,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Buying next items";
 		case 6:
 			return "Waiting for items to buy/sell";
+		case 7:
+			return "Buying Vials of water";
 			
 			
 		case 10:
@@ -676,6 +709,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Depositing all items";
 		case 15:
 			return "Checking for next process";
+		case 16:
+			return "Leaving 1m in the bank";
+		case 17:
+			return "Emptying bank (everything)";
+		case 18:
+			return "Taking out only cois";
 			
 			
 		case 20:
@@ -688,9 +727,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 		case 30:
 			return "Breaking...";
-			
 		case 31:
 			return "Login...";
+		case 32:
+			return "Doing nothing while staying logged in";
 			
 		default:
 			return "INVALID STATE";

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Skills;
 
+import scripts.JrProcessor;
+import scripts.util.Util;
+
 public class ItemProcessManager {
 	
 	private static int item1Total = 0;
@@ -13,11 +16,39 @@ public class ItemProcessManager {
 	
 	
 	public static ProcessingObject searchBank() {
-			
+		
+		Util.log("searchBank(): Looking for next process");
+		
+		int vialsOfWaterNeeded = 0;
+		
 		for(ProcessingObject process : getListOfProcesses()) {
-			if(checkItem(process)) {
-				return process;
+			
+			int item1Count = 0;
+			int item2Count = 0;
+			
+			// If we're using a 2nd item
+			if(process.item2Count != 0) {
+				item1Count = Banking.find(process.item1).length != 0 ? Banking.find(process.item1)[0].getStack() : 0;
+				item2Count = Banking.find(process.item2).length != 0 ? Banking.find(process.item2)[0].getStack() : 0;
+			}else { // If only using 1 item
+				item1Count = Banking.find(process.item1).length != 0 ? Banking.find(process.item1)[0].getStack() : 0;
 			}
+			
+			// If we can do this process
+			if(item1Count >= process.item1Count && item2Count >= process.item2Count) {
+				Util.log("searchBank(): Found "+ process.result);
+				return process;
+			}else {
+				// If we can't do this process since we're missing vials of water
+				if(item1Count > 0 && item2Count == 0 && process.item2.equalsIgnoreCase("Vial of water")) {
+					Util.log("searchBank(): need to buy vials of water for this task");
+					Util.log("searchBank(): amount: " + item1Count);
+					vialsOfWaterNeeded += item1Count;
+				}
+			}
+		}
+		if(vialsOfWaterNeeded > 0) {
+			JrProcessor.setStatus(JrProcessor.STATUS.MISSING_VIALS_OF_WATER, vialsOfWaterNeeded);
 		}
 		
 		return null;

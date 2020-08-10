@@ -1103,74 +1103,26 @@ public class GE {
 		return false;
 	}
 	
-	/**
-	 * Attempts to buy an item at the best price possible
-	 * @param itemName Name of the item
-	 * @param quantity Amount to buy
-	 * @param offset How much to lower the buy price by
-	 * @return true if bought, false if fail
-	 */
-//	private static boolean buyBestPrice(String itemName, int quantity, int offset) {
-//		// Util.log("buyBestPrice(): xxxxxx");
-//		if(!isInGE()) {
-//			Util.log("buyBestPrice(): Not in GE");
-//			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-//			return false;
-//		}
-//		
-//		Util.log("buyBestPrice(): Checking HIGH price");
-//		// Get the highest price of the item
-//		int highPrice = GE.checkHighPrice(itemName);
-//		Util.log("buyBestPrice(): checkHighPrice() returned: " + highPrice);
-//		
-//		
-//		// If any error was passed
-//		if(highPrice < 0) {
-//			return false;
-//		}		
-//		
-//		if(!isInGE()) {
-//			Util.log("buyBestPrice(): Not in GE");
-//			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-//			return false;
-//		}
-//		
-//		
-//		int lowPrice = 0;
-//		// If the high price is low, dont bother getting the low price
-//		if(highPrice <= 100) {
-//			lowPrice = highPrice;
-//			Util.log("buyBestPrice(): High price is low, using it to buy.");
-//		}else {
-//			// Find the item in the inventory
-//			RSItem[] items = Inventory.find(itemName);
-//			
-//			// If no item is in the inventory
-//			if(items.length == 0) {
-//				JrProcessor.setStatus(JrProcessor.STATUS.NO_INVENTORY_ITEM);
-//				return false;
-//			}
-//			
-//			Util.log("buyBestPrice(): Checking LOW price");
-//			// Get the low price of the item
-//			lowPrice = GE.checkLowPrice(items[0]);
-//			Util.log("buyBestPrice(): checkLowPrice() returned: " + highPrice);
-//			
-//			
-//			if(!isInGE()) {
-//				Util.log("buyBestPrice(): Not in GE");
-//				JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
-//				return false;
-//			}
-//			
-//			// If any error was passed
-//			if(lowPrice < 0) {
-//				return false;
-//			}	
-//		}
-//		
-//		return GE.openBuyOffer(itemName, lowPrice + offset, quantity);
-//	}
+	public static boolean buyVialsOfWater(int amount) {
+		if(!GE.isInGE()) {
+			Util.log("buyVialsOfWater(): Not in GE");
+			JrProcessor.setStatus(JrProcessor.STATUS.GE_NOT_OPEN);
+			return false;
+		}
+		
+		if(!GE.openBuyOffer("Vial of water", 15, amount)) {
+			Util.log("buyVialsOfWater(): Unable to buy vials of water");
+			return false;
+		}
+		
+		if(!GE.waitThenCancel()) {
+			Util.log("buyVialsOfWater(): Unable to collect");
+			return false;
+		}
+
+		JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
+		return true;
+	}
 
 
 	public static int[] findLowHigh(String itemName) {

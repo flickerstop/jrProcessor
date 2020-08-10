@@ -11,6 +11,7 @@ import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
 
 import scripts.util.Bank;
+import scripts.util.GE;
 import scripts.util.Network;
 import scripts.util.Util;
 
@@ -259,6 +260,13 @@ public class ProcessingObject {
 				int i = 0;
 				
 				while(true) {
+					
+					if(Banking.isBankLoaded()) {
+						return false;
+					}else if(GE.isInGE()) {
+						return false;
+					}
+					
 					int amountLeft = amountTotal - numberClicked;
 					
 					// if there are not 4 spots forward

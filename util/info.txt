@@ -12,14 +12,17 @@ Method
 
 STATES
 
+
+GE
 1   open GE
 2   closeGE
 3   sell inventory
 4   cancel and collect
 5   Buy next item
 6   wait and collect
+7   buy vials of water
 
-
+BANK
 10  open bank
 11  close bank
 12  empty bank (10 min)
@@ -28,13 +31,14 @@ STATES
 15  find what to do next
 16  leave 1m in bank
 17  empty bank (Everything)
+18  take out coins
 
-
-
+PROCESS
 20  search bank for process
 21  process in bank
 22  process in inventory
 
+OTHER
 30  breaking
 31  login
 32  idle (wait for bank to trade)
