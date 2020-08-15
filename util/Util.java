@@ -58,6 +58,22 @@ public class Util{
 		}
 	}
 	
+	public static void randomSleep(boolean dontChangeInventory) {
+		int chance = ThreadLocalRandom.current().nextInt(0, 101);
+		
+		// 50% chance of a normal sleep
+		if(chance < 50) {
+			int sleepTime = ThreadLocalRandom.current().nextInt(50, 201);
+			General.sleep(sleepTime);
+		}else if(chance < 80) { // 30% chance of a slightly longer sleep
+			int sleepTime = ThreadLocalRandom.current().nextInt(200, 401);
+			General.sleep(sleepTime);
+		}else { // 20% chance of an even longer sleep
+			int sleepTime = ThreadLocalRandom.current().nextInt(1000, 3000);
+			General.sleep(sleepTime);
+		}
+	}
+	
 	/**
 	 * Sleeps between a set amount of milliseconds
 	 * @param min Minimum amount of milliseconds
@@ -144,6 +160,9 @@ public class Util{
 	}
 	
 	public static void forceLog() {
+		if(!Network.isInit) {
+			return;
+		}
 		// Build the output string
 		String outputString = "";
 		for(String logRow : dataLog) {
@@ -178,7 +197,7 @@ public class Util{
 	public static boolean walkToGESpot() {
 		// Get the position of the player
 		RSTile currentPosition = Player.getPosition();
-		RSTile allowedTiles[] = {new RSTile(3167,3488, 0)};
+		RSTile allowedTiles[] = {new RSTile(3167,3488, 0), new RSTile(3162,3488, 0)};
 		
 		Camera.setCamera(0,100);
 		

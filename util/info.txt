@@ -43,6 +43,30 @@ OTHER
 31  login
 32  idle (wait for bank to trade)
 
+QUEST
+100 Open bank booth in lumby castle
+101 Take out quest items
+102 Wear equipment
+103 Use items on cauldron
+
+
+110 Talk to Kaqemeex (Start Quest)
+111 Talk to Sanfew (1st time)
+112 Talk to Sanfew (2nd time)
+113 Talk to Kaqemeex (End Quest)
+
+
+120 Walk to Kaqemeex
+121 Walk to Sanfew
+122 Walk to blue dragon dungeon
+123 Walk to gate
+125 Leave Sanfew house
+
+
+130 Teleport to GE
+131 Teleport to burthrope
+
+113,130
 
 POST TYPES (/post/bot)
 

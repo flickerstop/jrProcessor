@@ -1,14 +1,18 @@
 package scripts;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.Skills;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
+import org.tribot.script.interfaces.Arguments;
 import org.tribot.script.interfaces.Breaking;
 import org.tribot.script.interfaces.Ending;
 import org.tribot.script.interfaces.MessageListening07;
@@ -20,13 +24,16 @@ import scripts.objects.ProcessingObject;
 import scripts.util.Bank;
 import scripts.util.GE;
 import scripts.util.Inven;
+import scripts.util.NPCTalk;
 import scripts.util.Network;
+import scripts.util.Teleport;
 import scripts.util.Trade;
 import scripts.util.Util;
+import scripts.util.Walk;
 
 
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrProcessor")
-public class JrProcessor extends Script implements Starting, Breaking, PreBreaking, Ending, MessageListening07 {
+public class JrProcessor extends Script implements Starting, Breaking, PreBreaking, Ending, MessageListening07{
 	
 	private static boolean isReadyToBreak = false;
 	private static boolean isBreaking = false;
@@ -92,9 +99,31 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			if(!Login.login()) {
 				if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.BANNED) {
 					isRunning = false;
+					return;
+				}
+				if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.MEM_WORLD) {
+					isRunning = false;
+					return;
 				}
 			}
+		}else {
+			Util.log("run(): Already logged in");
 		}
+		
+		long waitTill = Util.secondsLater(60);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(Login.getLoginState() == Login.STATE.INGAME) {
+		    	break;
+		    }else if(Login.getLoginState() == Login.STATE.WELCOMESCREEN) {
+		    	Mouse.moveBox(276,295,488,373);
+		    	Util.randomSleep();
+		    	Mouse.click(1);
+		    	Util.randomSleepRange(5000, 10000);
+		    }
+		}
+
+		
 		Util.log("run(): network init");
 		
 		Util.log("run(): "+Network.version);
@@ -105,10 +134,23 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 		
 		// Starting order
-		stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
+		//stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
 		
 		// testing mule
 		//stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
+		
+		// Find where to start
+		
+		
+		if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) == 1) {
+			Util.log("run(): Selected QUESTING state order");
+			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
+			Camera.setCamera(0,100);
+			stateOrder.addAll(Arrays.asList(100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
+		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
+			stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
+			Util.log("run(): Selected PROCESSING state order");
+		}
 		
 					
 		while(isRunning) {
@@ -117,6 +159,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			if(Login.getLoginState() != Login.STATE.INGAME) {
 				Util.log("run(): Account not logged in!");
 				stateOrder.addFirst(31);
+			}
+			
+			// Check if any membership is left
+			if(Util.getMembershipLeft().equalsIgnoreCase("none")) {
+				Util.log("No membership left");
+				Login.logout();
+				isRunning = false;
+				return;
 			}
 			
 			// Check if we should check in with the server
@@ -538,6 +588,159 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 				break;
 			////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////
+				
+				
+				
+			case 100: // Open bank booth in lumby castle
+				Util.log("run() state 100: Open bank booth in lumby castle");
+				if(!Bank.openLumbyBank()) {
+					stateOrder.clear();
+					Util.log("run() state 100: Problem opening bank");
+				}
+				break;
+				
+			case 101: // Take out quest items
+				Util.log("run() state 101: Take out quest items");
+				if(!Bank.takeOutQuestItems()) {
+					stateOrder.clear();
+					Util.log("run() state 101: Problem taking out items");
+				}
+				break;
+				
+			case 102: // Wear equipment
+				Util.log("run() state 102: Wear equipment");
+				if(!Inven.wearQuestItems()) {
+					stateOrder.clear();
+					Util.log("run() state 102: Problem wearing items");
+				}
+				break;
+				
+			case 103: // Use items on cauldron
+				Util.log("run() state 103: Use items on cauldron");
+				if(!NPCTalk.useItemsOnCauldron()) {
+					stateOrder.clear();
+					Util.log("run() state 103: Problem using items on cauldron");
+				}
+				break;
+				
+				
+				
+				
+			case 110: // Talk to Kaqemeex (Start quest)
+				Util.log("run() state 110: Talk to Kaqemeex (Start quest)");
+				if(!NPCTalk.kaqemeex1()) {
+					stateOrder.clear();
+					Util.log("run() state 110: Problem talking to kaqemeex");
+				}
+				break;
+				
+			case 111: // Talk to Sanfew (1st time)
+				Util.log("run() state 111: Talk to Sanfew (1st time)");
+				if(!NPCTalk.sanfew1()) {
+					stateOrder.clear();
+					Util.log("run() state 111: Problem talking to Sanfew");
+				}
+				break;
+				
+			case 112: // Talk to Sanfew (2nd time)
+				Util.log("run() state 112: Talk to Sanfew (2nd time)");
+				if(!NPCTalk.sanfew2()) {
+					stateOrder.clear();
+					Util.log("run() state 112: Problem talking to Sanfew");
+				}
+				break;
+				
+			case 113: // Talk to Kaqemeex (End Quest)
+				Util.log("run() state 113: Talk to Kaqemeex (End Quest)");
+				if(!NPCTalk.kaqemeex2()) {
+					stateOrder.clear();
+					Util.log("run() state 110: Problem talking to kaqemeex");
+				}
+				break;
+				
+				
+				
+				
+			case 120: // Walk to Kaqemeex
+				Util.log("run() state 120: Walk to Kaqemeex");
+				if(!Walk.walkToRandom(2923, 3487, 2928, 3485, 0)) {
+					stateOrder.clear();
+					Util.log("run() state 120: Failed to walk to Kaqemeex");
+				}
+				break;
+				
+			case 121: // Walk to Sanfew
+				Util.log("run() state 121: Walk to Sanfew");
+				if(!Walk.walkToPosition(2897, 3428, 0)) {
+					stateOrder.clear();
+					Util.log("run() state 121: unable to walk to Sanfew");
+				}else {
+					if(!Walk.climbUpStairs()) {
+						stateOrder.clear();
+						Util.log("run() state 121: unable to climb up stairs");
+					}
+					Util.randomSleep();
+				}
+				break;
+				
+			case 122: // Walk to blue dragon dungeon
+				Util.log("run() state 122: Walk to blue dragon dungeon");
+				if(!Walk.walkToPosition(2884, 3398, 0)) {
+					stateOrder.clear();
+					Util.log("run() state 122: unable to walk to blue dragon dungeon");
+				}else {
+					if(!Walk.climbDownLadder()) {
+						stateOrder.clear();
+						Util.log("run() state 122: unable to climb down ladder");
+					}
+					Util.randomSleep();
+				}
+				break;
+				
+			case 123: // Walk to gate
+				Util.log("run() state 123: Walk to gate");
+				if(!Walk.walkToPosition(2888, 9830, 0)) {
+					Util.log("run() state 123: Unable to walk to gate");
+					stateOrder.clear();
+				}else {
+					if(!Walk.openPrisonGate()) {
+						Util.log("run() state 123: Failed to enter gate");
+						stateOrder.clear();
+					}
+				}
+				break;
+				
+				
+			case 125: // Leave Sanfew House
+				Util.log("run() state 125: Leave Sanfew House");
+				if(!Walk.climbDownStairs()) {
+					Util.log("run() state 125: Unable to climb down stairs");
+					stateOrder.clear();
+				}
+				break;
+				
+				
+				
+				
+			case 130: // Teleport to GE
+				Util.log("run() state 130:  Teleport to GE");
+				if(!Teleport.grandExchange()) {
+					Util.log("run() state 130: Failed teleporting");
+					stateOrder.clear();
+				}
+				break;
+				
+			case 131: // Teleport to burthorpe
+				Util.log("run() state 131: Teleport to burthorpe");
+				if(!Teleport.burthorpe()) {
+					Util.log("run() state 131: Failed teleporting");
+					stateOrder.clear();
+				}
+				break;
+				
+				
+			////////////////////////////////////////////////////////////////
 			}
 			// Handle errors
 			switch(status) {
@@ -656,6 +859,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
         for (Thread thread : Thread.getAllStackTraces().keySet())
             if (thread.getName().contains("Antiban") || thread.getName().contains("Fatigue"))
                 thread.suspend();
+        
+        Util.log("Anti-ban Suspended");
     }
 	
 	@Override    
@@ -695,8 +900,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Waiting for items to buy/sell";
 		case 7:
 			return "Buying Vials of water";
-			
-			
 		case 10:
 			return "Opening Bank";
 		case 11:
@@ -715,28 +918,55 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Emptying bank (everything)";
 		case 18:
 			return "Taking out only cois";
-			
-			
 		case 20:
 			return "DEAD STATE";
 		case 21:
 			return "Processing in Bank";
 		case 22:
 			return "Processing in Inventory";
-			
-			
 		case 30:
 			return "Breaking...";
 		case 31:
 			return "Login...";
 		case 32:
 			return "Doing nothing while staying logged in";
+		case 100: 
+			return "Open bank booth in lumby castle";
+		case 101:
+			return "Take out quest items";
+		case 102:
+			return "Wear quest equipment";
+		case 103:
+			return "Use items on cauldron";
+		case 110:
+			return "Talk to Kaqemeex (Start quest)";
+		case 111:
+			return "Talk to Sanfew (1st time)";
+		case 112:
+			return "Talk to Sanfew (2nd time)";
+		case 113:
+			return "Talk to Kaqemeex (End Quest)";
+		case 120:
+			return "Walk to Kaqemeex";
+		case 121:
+			return "Walk to Sanfew";
+		case 122:
+			return "Walk to blue dragon dungeon";
+		case 123:
+			return "Walk to gate";
+		case 124:
+			return "Enter Gate";
+		case 125:
+			return "Leave Sanfew House";
+		case 130:
+			return "Teleport to GE";
+		case 131:
+			return "Teleport to burthorpe";
 			
 		default:
 			return "INVALID STATE";
 		}
 	}
-
 
 }
 

@@ -49,7 +49,7 @@ public class GE {
 		
 		// Get the position of the player
 		RSTile currentPosition = Player.getPosition();
-		RSTile allowedTiles[] = {new RSTile(3167,3488, 0)};
+		RSTile allowedTiles[] = {new RSTile(3167,3488, 0), new RSTile(3162,3488, 0)};
 		boolean onCorrectTile = false;
 		
 		Util.log("openGE(): Checking if on a correct tile");

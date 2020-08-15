@@ -1,6 +1,8 @@
 package scripts.util;
 
 
+import java.util.ArrayList;
+
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Game;
@@ -387,4 +389,129 @@ public class Bank {
 		return true;
 	}
 
+
+	public static boolean openLumbyBank() {
+		
+		Util.log("openLumbyBank(): Searching for bank booth");
+		// Look for the closest bank booth
+		
+		RSObject closestBooth = null;
+		int closestBoothDistance = Integer.MAX_VALUE;
+		// Loop through all NPCs with the correct name
+		for(RSObject booth : Objects.findNearest(10, "Bank booth")) {
+			int distance = Player.getPosition().distanceTo(booth.getPosition());
+			
+			if(distance < closestBoothDistance) {
+				closestBoothDistance = distance;
+				closestBooth = booth;
+			}
+		}
+		
+		if(closestBooth == null) {
+			return false;
+		}
+		
+		Util.log("openLumbyBank(): Opening Bank");
+		
+		// Right click the closest NPC and exchange
+		if(!closestBooth.click("Bank Bank booth")) {
+			return false;
+		}
+		
+		Util.log("openLumbyBank(): Waiting for bank to be open");
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    // Make sure the bank is open
+			if(Banking.isBankScreenOpen()) {
+				return true;
+			}
+		}
+		
+		return false;
+		
+		
+	}
+
+	public static boolean takeOutQuestItems() {
+		
+		boolean hasBeef = Banking.find("Raw beef").length != 0 ? true : false;
+		boolean hasRat = Banking.find("Raw rat meat").length != 0 ? true : false;
+		boolean hasBear = Banking.find("Raw bear meat").length != 0 ? true : false;
+		boolean hasChicken = Banking.find("Raw chicken").length != 0 ? true : false;
+		boolean hasGames = Banking.find("Games necklace(8)").length != 0 ? true : false;
+		boolean hasWealth = Banking.find("Ring of wealth (5)").length != 0 ? true : false;
+		
+		if(!hasBeef || !hasRat || !hasBear || !hasChicken || !hasGames || !hasWealth) {
+			Util.log("takeOutQuestItems(): Missing item(s)");
+			return false;
+		}
+		
+		// Items to take out
+		ArrayList<String> items = new ArrayList<String>();
+		items.add("Raw beef");
+		items.add("Raw rat meat");
+		items.add("Raw bear meat");
+		items.add("Raw chicken");
+		items.add("Games necklace(8)");
+		items.add("Ring of wealth (5)");
+		
+		// Loop until we have no more items to move out or 3 minutes have passed
+		long maxWait = Util.secondsLater(60*3);
+		while(Util.time() < maxWait && items.size() > 0) {
+			for(int i = 0; i < items.size(); i++) {
+				Banking.withdraw(1, items.get(i));
+				
+				long waitTill = Util.secondsLater(5);
+				while(Util.time() < waitTill) {
+				    Util.randomSleep();
+				    if(Inventory.find(items.get(i)).length > 0) {
+				    	Util.log("takeOutQuestItems(): Withdrawn "+ items.get(i));
+				    	items.remove(items.get(i));
+				    	i--;
+				    	break;
+				    }
+				}
+			}
+		}
+		
+		if(items.size() > 0) {
+			Util.log("takeOutQuestItems(): Items still left in bank!");
+			return false;
+		}
+		Util.log("takeOutQuestItems(): Items taken out of the bank");
+		return true;
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
+
