@@ -35,12 +35,15 @@ public class Walk {
 					Util.log("walkToPosition(): x:"+x+" y:"+y+" z:"+z);
 					Util.log("walkToPosition(): Distance: "+Player.getPosition().distanceTo(new RSTile(x, y, z)));
 				}
-			}else {
+			}
+			
+			if(Player.getPosition().distanceTo(new RSTile(x, y, z)) < 5){
+				Util.log("walkToPosition(): Close enough to tile");
 				break;
 			}
 		}
 		
-		if(Player.getPosition().distanceTo(new RSTile(x, y, z)) > 10) {
+		if(Player.getPosition().distanceTo(new RSTile(x, y, z)) > 5) {
 			Util.log("walkToPosition(): Failed to walk within 10 tiles");
 			return false;
 		}

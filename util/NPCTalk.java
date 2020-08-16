@@ -53,7 +53,7 @@ public class NPCTalk {
 			NPCChat.clickContinue(true);
 			
 			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null && !firstDone) {
+			if(NPCChat.getOptions() != null) {
 				Util.log("kaqemeex1(): Chat has options (first selection menu)");
 				// Loop through the chat options
 				for(String option : NPCChat.getOptions()) {
@@ -72,7 +72,7 @@ public class NPCTalk {
 			}
 			
 			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null && !secondDone) {
+			if(NPCChat.getOptions() != null) {
 				Util.log("kaqemeex1(): Chat has options (second selection menu)");
 				// Loop through the chat options
 				for(String option : NPCChat.getOptions()) {
@@ -196,7 +196,7 @@ public class NPCTalk {
 			NPCChat.clickContinue(true);
 			
 			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null && !firstDone) {
+			if(NPCChat.getOptions() != null) {
 				Util.log("sanfew1(): Chat has options (first selection menu)");
 				// Loop through the chat options
 				for(String option : NPCChat.getOptions()) {
@@ -215,7 +215,7 @@ public class NPCTalk {
 			}
 			
 			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null && !secondDone) {
+			if(NPCChat.getOptions() != null) {
 				Util.log("sanfew1(): Chat has options (second selection menu)");
 				// Loop through the chat options
 				for(String option : NPCChat.getOptions()) {

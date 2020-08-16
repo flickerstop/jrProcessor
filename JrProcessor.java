@@ -602,6 +602,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 			case 101: // Take out quest items
 				Util.log("run() state 101: Take out quest items");
+				Util.randomSleepRange(4000, 6000);
 				if(!Bank.takeOutQuestItems()) {
 					stateOrder.clear();
 					Util.log("run() state 101: Problem taking out items");
