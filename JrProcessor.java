@@ -55,6 +55,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	private static STATUS status = STATUS.NONE;
 	private static int currentState = 0;
 	
+	private static int currentObjective = 0;
+	
 	
 	private static final long TIME_BETWEEN_SERVER_CHECK = 60000L;
 	private static long lastServerCheck = Util.time() + TIME_BETWEEN_SERVER_CHECK;
@@ -146,9 +148,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.log("run(): Selected QUESTING state order");
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
-			stateOrder.addAll(Arrays.asList(100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
+			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
-			stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
+			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
 		}
 		
@@ -742,6 +744,26 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 				
 			////////////////////////////////////////////////////////////////
+				
+				
+				
+				
+				
+				
+				
+				
+			////////////////////////////////////////////////////////////////
+				
+			case 1000:
+				currentObjective = 1;
+				break;
+			case 1001:
+				currentObjective = 2;
+				break;
+				
+				
+			////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////
 			}
 			// Handle errors
 			switch(status) {
@@ -969,6 +991,21 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		}
 	}
 
+
+	public static String getCurrentObjectiveString() {
+		switch(currentObjective) {
+		case 1:
+			return "Making Potions";
+		case 2:
+			return "Druidic Ritual";
+		default:
+			return "unknown";
+		}
+	}
+	
+	public static int getCurrentObjectiveInt() {
+		return currentObjective;
+	}
 }
 
 

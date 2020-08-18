@@ -21,7 +21,7 @@ public class NPCTalk {
 		// Find the npc
 		RSNPC npc =  NPCs.find("Kaqemeex").length != 0 ? NPCs.find("Kaqemeex")[0] : null;
 		
-		
+		Network.updateSubTask("Looking for kaqemeex");
 		// Check for null
 		if(npc == null) {
 			Util.log("kaqemeex1(): Unable to find NPC");
@@ -46,7 +46,7 @@ public class NPCTalk {
 		
 		boolean firstDone = false;
 		boolean secondDone = false;
-		
+		Network.updateSubTask("Talking to kaqemeex");
 		waitTill = Util.secondsLater(60*3);
 		while(Util.time() < waitTill) {
 		    Util.log("kaqemeex1(): Clicking continue...");
@@ -63,6 +63,7 @@ public class NPCTalk {
 						if(NPCChat.selectOption("I'm in search of a quest.", true)) {
 							Util.log("kaqemeex1(): Clicked correct option");
 							firstDone = true;
+							Network.updateSubTask("First option done");
 						}else {
 							Util.log("kaqemeex1(): Unable to click option");
 							return false;
@@ -81,6 +82,7 @@ public class NPCTalk {
 						Util.log("kaqemeex1(): Correct option found");
 						if(NPCChat.selectOption("Okay, I will try and help.", true)) {
 							Util.log("kaqemeex1(): Clicked correct option");
+							Network.updateSubTask("Second Option done");
 							secondDone = true;
 						}else {
 							Util.log("kaqemeex1(): Unable to click option");
@@ -111,6 +113,7 @@ public class NPCTalk {
 
 		Util.log("kaqemeex2(): Looking for NPC");
 		// Find the npc
+		Network.updateSubTask("Looking for kaqemeex");
 		RSNPC npc =  NPCs.find("Kaqemeex").length != 0 ? NPCs.find("Kaqemeex")[0] : null;
 		
 		
@@ -120,7 +123,7 @@ public class NPCTalk {
 			return false;
 		}
 		
-		
+		Network.updateSubTask("Talking to kaqemeex");
 		long waitTill = Util.secondsLater(15);
 		while(Util.time() < waitTill) {
 			npc.click("Talk-to Kaqemeex");
@@ -162,7 +165,7 @@ public class NPCTalk {
 		Util.log("sanfew1(): Looking for NPC");
 		// Find the npc
 		RSNPC npc =  NPCs.find("Sanfew").length != 0 ? NPCs.find("Sanfew")[0] : null;
-		
+		Network.updateSubTask("Looking for sanfew");
 		
 		// Check for null
 		if(npc == null) {
@@ -189,7 +192,7 @@ public class NPCTalk {
 		
 		boolean firstDone = false;
 		boolean secondDone = false;
-		
+		Network.updateSubTask("Talking to Sanfew");
 		waitTill = Util.secondsLater(60*3);
 		while(Util.time() < waitTill) {
 		    Util.log("sanfew1(): Clicking continue...");
@@ -206,6 +209,7 @@ public class NPCTalk {
 						if(NPCChat.selectOption("I've been sent to help purify the Varrock stone circle.", true)) {
 							Util.log("sanfew1(): Clicked correct option");
 							firstDone = true;
+							Network.updateSubTask("First option done");
 						}else {
 							Util.log("sanfew1(): Unable to click option");
 							return false;
@@ -225,6 +229,7 @@ public class NPCTalk {
 						if(NPCChat.selectOption("Ok, I'll do that then.", true)) {
 							Util.log("sanfew1(): Clicked correct option");
 							secondDone = true;
+							Network.updateSubTask("Second option done");
 						}else {
 							Util.log("sanfew1(): Unable to click option");
 							return false;
@@ -255,7 +260,7 @@ public class NPCTalk {
 		Util.log("sanfew2(): Looking for NPC");
 		// Find the npc
 		RSNPC npc =  NPCs.find("Sanfew").length != 0 ? NPCs.find("Sanfew")[0] : null;
-		
+		Network.updateSubTask("Looking for sanfew");
 		
 		// Check for null
 		if(npc == null) {
@@ -263,7 +268,7 @@ public class NPCTalk {
 			return false;
 		}
 		
-		
+		Network.updateSubTask("Talking to sanfew");
 		long waitTill = Util.secondsLater(15);
 		while(Util.time() < waitTill) {
 			npc.click("Talk-to Sanfew");
@@ -313,7 +318,7 @@ public class NPCTalk {
 		long maxWait = Util.secondsLater(60*3);
 		while(Util.time() < maxWait && items.size() > 0) {
 			for(int i = 0; i < items.size(); i++) {
-				
+				Network.updateSubTask("Using "+items.get(i)+" on cauldron");
 				Util.log("useItemsOnCauldron(): Clicking "+items.get(i));
 				// click use on the item
 				if(Inventory.find(items.get(i))[i].click("Use "+items.get(i))) {

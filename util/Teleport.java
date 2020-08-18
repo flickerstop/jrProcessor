@@ -45,6 +45,7 @@ public class Teleport {
 			Util.log("burthorpe(): Looking for "+item);
 			// Check if the item is in the inventory
 			if(Equipment.find(item).length != 0) {
+				Network.updateSubTask("Using "+item);
 				Equipment.find(item)[0].click("Burthorpe "+item);
 				break;
 			}
@@ -99,6 +100,7 @@ public class Teleport {
 			Util.log("grandExchange(): Looking for "+item);
 			// Check if the item is in the inventory
 			if(Equipment.find(item).length != 0) {
+				Network.updateSubTask("Using "+item);
 				Equipment.find(item)[0].click("Grand Exchange "+item);
 				break;
 			}

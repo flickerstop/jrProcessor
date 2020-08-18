@@ -162,6 +162,9 @@ public class Network {
         params.put("startTime", startTime);
         params.put("world", WorldHopper.getWorld());
         params.put("mainTask", JrProcessor.getStateString());
+        params.put("objectiveString", JrProcessor.getCurrentObjectiveString());
+        params.put("objectiveInt", JrProcessor.getCurrentObjectiveInt());
+        params.put("server", ServerInfo.getServer());
         
         
     	params.put("item1Name", JrProcessor.currentProcess == null ? null : JrProcessor.currentProcess.item1);
@@ -178,6 +181,7 @@ public class Network {
 		Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("task", task);
+        params.put("server", ServerInfo.getServer());
 
         try {
 			post(params,"/mainTask");
@@ -191,6 +195,7 @@ public class Network {
 		Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("task", task);
+        params.put("server", ServerInfo.getServer());
 
         try {
 			post(params,"/subTask");
@@ -205,6 +210,7 @@ public class Network {
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("position", position);
+        params.put("server", ServerInfo.getServer());
 
         post(params,"/position");
 	}
@@ -213,6 +219,7 @@ public class Network {
 	public static void announceBreakStart() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
+        params.put("server", ServerInfo.getServer());
 
         post(params,"/breakStart");
 	}
@@ -221,6 +228,7 @@ public class Network {
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("logString", logData);
+        params.put("server", ServerInfo.getServer());
 
         post(params,"/log");
 	}
@@ -228,6 +236,7 @@ public class Network {
 	public static void announceBreakEnd() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
+        params.put("server", ServerInfo.getServer());
 
         post(params,"/breakEnd");
 	}
@@ -235,6 +244,7 @@ public class Network {
 	public static void announceCrash() throws Exception {
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
+        params.put("server", ServerInfo.getServer());
 
         post(params,"/crash");
 	}
@@ -287,6 +297,8 @@ public class Network {
         params.put("membership",membershipLeft);
         params.put("startTime",startTime);
         params.put("version",version);
+        params.put("server", ServerInfo.getServer());
+        
 
         try {
 			post(params,"/init");

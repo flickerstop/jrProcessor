@@ -393,8 +393,9 @@ public class Bank {
 	public static boolean openLumbyBank() {
 		
 		Util.log("openLumbyBank(): Searching for bank booth");
-		// Look for the closest bank booth
+		Network.updateSubTask("Looking for lumby bank");
 		
+		// Look for the closest bank booth
 		RSObject closestBooth = null;
 		int closestBoothDistance = Integer.MAX_VALUE;
 		// Loop through all NPCs with the correct name
@@ -412,6 +413,7 @@ public class Bank {
 		}
 		
 		Util.log("openLumbyBank(): Opening Bank");
+		Network.updateSubTask("Opening bank");
 		
 		// Right click the closest NPC and exchange
 		if(!closestBooth.click("Bank Bank booth")) {
@@ -455,7 +457,7 @@ public class Bank {
 		items.add("Raw chicken");
 		items.add("Games necklace(8)");
 		items.add("Ring of wealth (5)");
-		
+		Network.updateSubTask("Taking out items");
 		// Loop until we have no more items to move out or 3 minutes have passed
 		long maxWait = Util.secondsLater(60*3);
 		while(Util.time() < maxWait && items.size() > 0) {

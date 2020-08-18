@@ -24,7 +24,7 @@ public class Walk {
 		Util.log("walkToPosition(): Distance: "+distanceTo);
 		
 		int MAX_ATTEMPTS = 3;
-		
+		Network.updateSubTask("Walking...");
 		for(int walkingAttempt = 0;walkingAttempt < MAX_ATTEMPTS; walkingAttempt++) {
 			if(!WebWalking.walkTo(new RSTile(x,y,z))) {
 				if(Player.getPosition().distanceTo(new RSTile(x, y, z)) > distanceTo) {
@@ -74,11 +74,12 @@ public class Walk {
 	}
 	
 	public static boolean climbUpStairs() {
+		
 		RSTile startingPos = Player.getPosition();
 		
 		RSObject stairs = Objects.findNearest(5, "Staircase").length > 0 ? Objects.findNearest(5, "Staircase")[0] : null;
 		Util.log("climbUpStairs(): Attempting to climb up stairs");
-		
+		Network.updateSubTask("Looking for stairs");
 		if(stairs == null) {
 			Util.log("climbUpStairs(): Unable to find stairs");
 			return false;
@@ -97,8 +98,8 @@ public class Walk {
 			Util.log("climbUpStairs(): Unable to click stairs");
 			return false;
 		}
-		
-		waitTill = Util.secondsLater(5);
+		Network.updateSubTask("Stairs Clicked");
+		waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
@@ -115,7 +116,7 @@ public class Walk {
 		
 		RSObject stairs = Objects.findNearest(5, "Staircase").length > 0 ? Objects.findNearest(5, "Staircase")[0] : null;
 		Util.log("climbDownStairs(): Attempting to climb down stairs");
-		
+		Network.updateSubTask("Looking for stairs");
 		if(stairs == null) {
 			Util.log("climbDownStairs(): Unable to find stairs");
 			return false;
@@ -135,7 +136,8 @@ public class Walk {
 			return false;
 		}
 		
-		waitTill = Util.secondsLater(5);
+		Network.updateSubTask("Stairs Clicked");
+		waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
@@ -154,7 +156,7 @@ public class Walk {
 		
 		RSObject stairs = Objects.findNearest(5, "Ladder").length > 0 ? Objects.findNearest(5, "Ladder")[0] : null;
 		Util.log("climbUpLadder(): Attempting to climb up ladder");
-		
+		Network.updateSubTask("Looking for ladder");
 		if(stairs == null) {
 			Util.log("climbUpLadder(): Unable to find ladder");
 			return false;
@@ -174,7 +176,8 @@ public class Walk {
 			return false;
 		}
 		
-		waitTill = Util.secondsLater(5);
+		Network.updateSubTask("Ladder Clicked");
+		waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
@@ -191,7 +194,7 @@ public class Walk {
 		
 		RSObject stairs = Objects.findNearest(5, "Ladder").length > 0 ? Objects.findNearest(5, "Ladder")[0] : null;
 		Util.log("climbDownLadder(): Attempting to climb down Ladder");
-		
+		Network.updateSubTask("Looking for ladder");
 		if(stairs == null) {
 			Util.log("climbDownLadder(): Unable to find Ladder");
 			return false;
@@ -211,7 +214,8 @@ public class Walk {
 			return false;
 		}
 		
-		waitTill = Util.secondsLater(5);
+		Network.updateSubTask("Ladder Clicked");
+		waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
@@ -232,7 +236,7 @@ public class Walk {
 			Util.log("openPrisonGate(): Unable to find gate");
 			return false;
 		}
-		
+		Network.updateSubTask("Spamming Gate");
 		long waitTill = Util.secondsLater(15);
 		while(Util.time() < waitTill) {
 			if(Player.getPosition().equals(new RSTile(2889,9830,0)) || Player.getPosition().equals(new RSTile(2889,9831))) {

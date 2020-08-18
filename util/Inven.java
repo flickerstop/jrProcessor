@@ -31,7 +31,7 @@ public class Inven {
 			return false;
 		}
 		
-		
+		Network.updateSubTask("Wearing games necky");
 		// Attempt to wear the items
 		Inventory.find("Games necklace(8)")[0].click("Wear Games necklace(8)");
 		long waitTill = Util.secondsLater(5);
@@ -42,6 +42,7 @@ public class Inven {
 		    }
 		}
 		
+		Network.updateSubTask("Wearing RoW");
 		Inventory.find("Ring of wealth (5)")[0].click("Wear Ring of wealth (5)");
 		waitTill = Util.secondsLater(5);
 		while(Util.time() < waitTill) {

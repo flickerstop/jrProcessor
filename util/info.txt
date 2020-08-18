@@ -13,7 +13,7 @@ Method
 STATES
 
 
-GE
+#GE
 1   open GE
 2   closeGE
 3   sell inventory
@@ -22,7 +22,7 @@ GE
 6   wait and collect
 7   buy vials of water
 
-BANK
+#BANK
 10  open bank
 11  close bank
 12  empty bank (10 min)
@@ -33,17 +33,17 @@ BANK
 17  empty bank (Everything)
 18  take out coins
 
-PROCESS
+#PROCESS
 20  search bank for process
 21  process in bank
 22  process in inventory
 
-OTHER
+#OTHER
 30  breaking
 31  login
 32  idle (wait for bank to trade)
 
-QUEST
+#QUEST
 100 Open bank booth in lumby castle
 101 Take out quest items
 102 Wear equipment
@@ -66,7 +66,23 @@ QUEST
 130 Teleport to GE
 131 Teleport to burthrope
 
-113,130
+
+
+
+
+
+
+
+#Set current Objective
+1000 Set making pots
+1001 Set Questing
+
+
+
+# Objectives
+1   Making pots
+2   Questing
+
 
 POST TYPES (/post/bot)
 
