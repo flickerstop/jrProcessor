@@ -78,7 +78,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    BUYING_1GP_ERROR, 
 	    BUYING_OVER_PRICE_ERROR, 
 	    LEAVE_1M_ERROR,
-	    MISSING_VIALS_OF_WATER
+	    MISSING_VIALS_OF_WATER,
+	    BANK_NOT_OPEN
 	}
 	
 	@Override
@@ -149,6 +150,11 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
 			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
+//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) > 68) {
+//			
+//			// TODO here
+//			stateOrder.addAll(Arrays.asList(1002,130,));
+//			Util.log("run(): Selected PROCESSING state order");
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
 			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
@@ -407,6 +413,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case 10: // open bank
 				if(!Bank.openBank()) {
 					Util.log("run(): Unable to open bank");
+					status = STATUS.BANK_NOT_OPEN;
 				}
 				break;
 			////////////////////////////////////////////////////////////////
@@ -760,6 +767,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			case 1001:
 				currentObjective = 2;
 				break;
+			case 1002:
+				currentObjective = 3;
+				break;
+			case 1003:
+				currentObjective = 4;
+				break;
 				
 				
 			////////////////////////////////////////////////////////////////
@@ -804,6 +817,21 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				Util.log("STATUS: Buying # " + statusData);
 				stateOrder.clear();
 				stateOrder.addAll(Arrays.asList(10,14,18,11,1,7,2,10,14,15));
+				break;
+				
+			case BANK_NOT_OPEN:
+				boolean hasOpened = false;
+				for(int i = 0; i < 4;i++) {
+					if(Bank.openBank()) {
+						hasOpened = true;
+						break;
+					}
+				}
+				if(!hasOpened) {
+					stateOrder.clear();
+					Network.updateMainTask("Unable to open bank");
+					Login.logout();
+				}
 				break;
 				
 			case FAILED_CLOSING:
@@ -998,6 +1026,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Making Potions";
 		case 2:
 			return "Druidic Ritual";
+		case 3:
+			return "Leveling Cooking";
+		case 4:
+			return "Cooking for GP";
 		default:
 			return "unknown";
 		}

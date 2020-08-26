@@ -146,7 +146,7 @@ public class ProcessingObject {
 			long endTime = new Date().getTime() + 10000L;
 			System.out.println("Looking for make interface...");
 			while(!skipinterface) {
-				if(Interfaces.get(MAKE_INTERFACE_ID) != null) {
+				if(Interfaces.get(MAKE_INTERFACE_ID) != null && Interfaces.get(MAKE_INTERFACE_ID).isBeingDrawn() && Interfaces.get(MAKE_INTERFACE_ID).isClickable()) {
 					break;
 				}else {
 					Util.randomSleep();
@@ -158,16 +158,6 @@ public class ProcessingObject {
 					return false;
 				}
 			}
-			
-			Util.randomSleepRange(500, 1000);
-			
-			if(Util.randomNumber(0, 100) > 70) {
-				Mouse.leaveGame(true);
-			}else {
-				Bank.hoverBank();
-			}
-			
-			
 			
 			
 			// Spam space until the make interface is gone
@@ -194,6 +184,12 @@ public class ProcessingObject {
 				if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
 					break;
 				}
+			}
+			
+			if(Util.randomNumber(0, 100) > 70) {
+				Mouse.leaveGame(true);
+			}else {
+				Bank.hoverBank();
 			}
 			
 			//Mouse.leaveGame(true);

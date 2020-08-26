@@ -21,8 +21,8 @@ import scripts.objects.ItemProcessManager;
 public class Network {
 
 	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
-	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	private static String urlStart = "http://flickerstop.com"; // Release
+	private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	//private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -107,7 +107,7 @@ public class Network {
 	public static String getServerStatus(){
 		String data = "null";
 		try {
-			data = getHTML(urlStart+"/get/bot/serverCheck");
+			data = getHTML(urlStart+"/get/bot/serverCheck/"+ServerInfo.getServer());
 		} catch (Exception e) {
 			Util.log("getServerStatus(): ERROR");
 			e.printStackTrace();

@@ -64,6 +64,7 @@ public class NPCTalk {
 							Util.log("kaqemeex1(): Clicked correct option");
 							firstDone = true;
 							Network.updateSubTask("First option done");
+							continue;
 						}else {
 							Util.log("kaqemeex1(): Unable to click option");
 							return false;
@@ -84,6 +85,7 @@ public class NPCTalk {
 							Util.log("kaqemeex1(): Clicked correct option");
 							Network.updateSubTask("Second Option done");
 							secondDone = true;
+							continue;
 						}else {
 							Util.log("kaqemeex1(): Unable to click option");
 							return false;

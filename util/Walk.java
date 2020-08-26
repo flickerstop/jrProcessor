@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.tribot.api.General;
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Equipment;
 import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Inventory;
@@ -74,7 +75,7 @@ public class Walk {
 	}
 	
 	public static boolean climbUpStairs() {
-		
+		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
 		
 		RSObject stairs = Objects.findNearest(5, "Staircase").length > 0 ? Objects.findNearest(5, "Staircase")[0] : null;
@@ -112,6 +113,7 @@ public class Walk {
 	}
 	
 	public static boolean climbDownStairs() {
+		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
 		
 		RSObject stairs = Objects.findNearest(5, "Staircase").length > 0 ? Objects.findNearest(5, "Staircase")[0] : null;
@@ -151,6 +153,7 @@ public class Walk {
 	
 	
 	public static boolean climbUpLadder() {
+		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
 		
 		
@@ -190,6 +193,7 @@ public class Walk {
 	}
 	
 	public static boolean climbDownLadder() {
+		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
 		
 		RSObject stairs = Objects.findNearest(5, "Ladder").length > 0 ? Objects.findNearest(5, "Ladder")[0] : null;
@@ -239,10 +243,18 @@ public class Walk {
 		Network.updateSubTask("Spamming Gate");
 		long waitTill = Util.secondsLater(15);
 		while(Util.time() < waitTill) {
+			
+			
 			if(Player.getPosition().equals(new RSTile(2889,9830,0)) || Player.getPosition().equals(new RSTile(2889,9831))) {
 				Util.log("openPrisonGate(): Walked through gate");
 		    	return true;
 		    }
+			
+			if(Player.getPosition().getY() >= 2889 && (Player.getPosition().getX() >= 9820 && Player.getPosition().getX() <= 9840)) {
+				Util.log("openPrisonGate(): Walked through gate then clicked");
+		    	return true;
+			}
+			
 			gate.click("Open Prison door");
 		    Util.randomSleepRange(300,500);
 		    

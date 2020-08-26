@@ -7,6 +7,7 @@ import org.tribot.api2007.Equipment;
 import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSTile;
 
 public class Teleport {
@@ -66,10 +67,46 @@ public class Teleport {
 		Util.log("burthorpe(): Error Teleporting");
 		return false;
 	}
+	
+	public static int checkGamesNecky() {
+		RSItem necky = Equipment.find(Equipment.SLOTS.AMULET).length > 0 ? Equipment.find(Equipment.SLOTS.AMULET)[0] : null;
+		
+		if(necky == null) {
+			return 0;
+		}
+		
+		
+		switch(necky.name) {
+		case "Games necklace(8)":
+			return 8;
+		case "Games necklace(7)":
+			return 7;
+		case "Games necklace(6)":
+			return 6;
+		case "Games necklace(5)":
+			return 5;
+		case "Games necklace(4)":
+			return 4;
+		case "Games necklace(3)":
+			return 3;
+		case "Games necklace(2)":
+			return 2;
+		case "Games necklace(1)":
+			return 1;
+		default:
+			return 0;
+		}
+		
+		
+		
+	}
 
 	public static boolean grandExchange() {
 		
-		
+		if(Player.getPosition().distanceTo(new RSTile(3165, 3479, 0)) < 20) {
+	    	Util.log("grandExchange(): Already in GE");
+	    	return true;
+	    }
 		
 		Util.log("grandExchange(): switch to equipment Tab");
 		

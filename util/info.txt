@@ -67,8 +67,18 @@ STATES
 131 Teleport to burthrope
 
 
+#COOKING
+200 walk to rogues den
+201 bank in rogues den
+202 bank for rogues den
+203 Cook in rogues den
 
+210 walk to nardah
+211 bank in nardah
+212 bank for nardah
+213 cook in nardah
 
+270 buy fish for leveling up
 
 
 
@@ -76,6 +86,8 @@ STATES
 #Set current Objective
 1000 Set making pots
 1001 Set Questing
+1002 Leveling cooking
+1003 cooking for gp
 
 
 
