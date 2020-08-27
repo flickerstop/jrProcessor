@@ -13,7 +13,10 @@ import org.tribot.api2007.types.RSTile;
 public class Teleport {
 	public static boolean burthorpe() {
 		
-		
+		if(Player.getPosition().distanceTo(new RSTile(2900, 3553, 0)) < 20) {
+	    	Util.log("burthorpe(): Already in burthorpe");
+	    	return true;
+	    }
 		
 		Util.log("burthorpe(): switch to equipment Tab");
 		

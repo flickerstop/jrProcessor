@@ -309,7 +309,7 @@ public class GE {
 		// set the buy price
 		if(buyPrice == 0) {
 			// If the price is less than 2000
-			if(GrandExchange.getGuidePrice() < 2000) {
+			if(GrandExchange.getGuidePrice() < 2000 && quantity < 10) {
 				Util.log("openBuyOffer(): Offer lower than 2k, buying for 10k");
 				// Buy it for 10k
 				Mouse.moveBox(376,202,406,222);

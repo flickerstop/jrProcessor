@@ -266,7 +266,44 @@ public class Walk {
 		
 	}
 	
-	
+	public static boolean enterTrapdoor() {
+		Camera.setCamera(0,100);
+		RSTile startingPos = Player.getPosition();
+		
+		RSObject stairs = Objects.findNearest(5, "Trapdoor").length > 0 ? Objects.findNearest(5, "Trapdoor")[0] : null;
+		Util.log("enterTrapdoor(): Attempting to climb Trapdoor");
+		Network.updateSubTask("Looking for Trapdoor");
+		if(stairs == null) {
+			Util.log("enterTrapdoor(): Unable to find Trapdoor");
+			return false;
+		}
+		
+		boolean hasClickedRight = false;
+		long waitTill = Util.secondsLater(20);
+		while(Util.time() < waitTill) {
+		    Util.randomSleepRange(2000,3000);
+		    if(stairs.click("Enter Trapdoor")) {
+		    	hasClickedRight = true;
+		    	break;
+		    }
+		}
+		if(!hasClickedRight) {
+			Util.log("enterTrapdoor(): Unable to click stairs");
+			return false;
+		}
+		
+		Network.updateSubTask("Trapdoor Clicked");
+		waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
+		    	break;
+		    }
+		}
+		
+		Util.log("enterTrapdoor(): Stairs climbed down");
+		return true;
+	}
 	
 	
 	

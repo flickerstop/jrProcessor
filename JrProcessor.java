@@ -7,7 +7,10 @@ import java.util.LinkedList;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
+import org.tribot.api2007.Game;
+import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Login;
+import org.tribot.api2007.Options;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.Skills;
 import org.tribot.script.Script;
@@ -150,11 +153,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
 			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
-//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) > 68) {
-//			
-//			// TODO here
-//			stateOrder.addAll(Arrays.asList(1002,130,));
-//			Util.log("run(): Selected PROCESSING state order");
+		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
+			Util.log("run(): Selected LEVEL COOKING state order");
+			// TODO here
+			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
+			stateOrder.addAll(Arrays.asList(900,200));
+			Util.log("run(): Selected PROCESSING state order");
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
 			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
@@ -570,7 +574,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 						try {
 							Network.announceCrash();
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						Network.updateMainTask("ACCOUNT BANNED!");
@@ -751,14 +754,113 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 				
 			////////////////////////////////////////////////////////////////
+			case 200:
+				Util.log("run() state 200: Walk to Rogues Den");
+				if(!Walk.walkToPosition(2906, 3537, 0)) {
+					stateOrder.clear();
+					Util.log("run() state 200: Failed to walk to Rogues Den");
+				}else {
+					if(!Walk.enterTrapdoor()) {
+						stateOrder.clear();
+						Util.log("run() state 200: Unable to enter trapdoor");
+					}else {
+						if(!Walk.walkToPosition(3043, 4972, 1)) {
+							stateOrder.clear();
+							Util.log("run() state 200: Failed to walk to Rogues Den fire");
+						}
+					}
+				}
+				break;
 				
+			case 201:
+				break;
 				
+			case 202:
+				break;
 				
+			case 203:
+				break;
 				
+			case 210:
+				break;
 				
+			case 211:
+				break;
 				
+			case 212:
+				break;
 				
+			case 213:
+				break;
 				
+			case 270:
+				Util.log("run(): Buying fish for cooking");
+                
+                // Check if there are coins in the inventory
+                if(Inven.hasCoins()) {
+                	totalCoins = Inven.countCoins();
+                	
+                	if(totalCoins < MIN_COINS) {
+                		Util.log("run(): Not enough coins in inventory");
+                		
+                		stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(2,10,17,11,1,3,6,10,14,18,270));
+                		break;
+                	}
+                }else {
+                	stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(2,10,14,18,270));
+                	break;
+                }
+                
+                Util.log("run(): Attempting to buy raw anchovies");
+                if(!GE.openBuyOffer("Raw anchovies", 0, 300)) {
+                	Util.log("run(): Unable to buy raw anchovies");
+                	stateOrder.clear();
+                	break;
+                }
+                
+                Util.log("run(): Attempting to buy raw trout");
+                if(!GE.openBuyOffer("Raw trout", 0, 400)) {
+                	Util.log("run(): Unable to buy raw trout");
+                	stateOrder.clear();
+                	break;
+                }
+                
+                Util.log("run(): Attempting to buy raw tuna");
+                if(!GE.openBuyOffer("Raw tuna", 0, 8000)) {
+                	Util.log("run(): Unable to buy raw tuna");
+                	stateOrder.clear();
+                	break;
+                }
+                
+				break;
+							
+							
+							
+							
+							
+							
+							
+			////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////
+							
+							
+							
+							
+							
+							
+							
+			case 900:
+				if(Game.getRoofsEnabledStatus() == Game.RoofStatus.BEING_DRAWN) {
+					if(!Options.setRemoveRoofsEnabled(true)) {
+						Util.log("run(): Unable to change remove roof settings");
+					}else {
+						Util.log("run(): Roofs removed");
+					}
+					
+					GameTab.open(GameTab.TABS.INVENTORY);
+				}
+				break;
+							
 			////////////////////////////////////////////////////////////////
 				
 			case 1000:
