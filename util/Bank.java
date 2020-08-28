@@ -5,13 +5,18 @@ import java.util.ArrayList;
 
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Game;
 import org.tribot.api2007.GrandExchange;
 import org.tribot.api2007.Inventory;
+import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.Walking;
 import org.tribot.api2007.types.RSItem;
+import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
+import org.tribot.api2007.types.RSTile;
 
 import scripts.JrProcessor;
 import scripts.objects.ItemProcessManager;
@@ -488,9 +493,93 @@ public class Bank {
 	}
 	
 	
+	public static boolean openRoguesDenBank() {
+		Camera.setCamera(90,100);
+		
+		//Util.log("openGE(): ");
+		
+		if(Banking.isBankScreenOpen()) {
+			Util.log("openRoguesDenBank(): Bank is open already");
+			return true;
+		}
+		
+		RSNPC closestNPC = null;
+		int closestNPCDistance = Integer.MAX_VALUE;
+		Util.log("openRoguesDenBank(): Finding the closest NPC");
+		// Loop through all NPCs with the correct name
+		for(RSNPC npc : NPCs.find("Emerald Benedict")) {
+			int distance = Player.getPosition().distanceTo(npc.getPosition());
+			
+			if(distance < closestNPCDistance) {
+				closestNPCDistance = distance;
+				closestNPC = npc;
+			}
+		}
+		
+		if(closestNPC == null) {
+			JrProcessor.setStatus(JrProcessor.STATUS.NPC_NOT_FOUND);
+			return false;
+		}
+		
+		Network.updateSubTask("Clicking Banker");
+		Util.log("openRoguesDenBank(): Clicking Banker");
+		// Right click the closest NPC and exchange
+		if(!closestNPC.click("Bank Emerald Benedict")) {
+			
+		}
+		
+				
+		Util.log("openRoguesDenBank(): Waiting for bank to be open");
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    // Make sure the bank is open
+			if(Banking.isBankScreenOpen()) {
+				return true;
+			}
+		}
+		
+		return false;
+		
+		
+	}
 	
-	
-	
+	public static boolean takeOutCookingTrainingFish() {
+		String item = null;
+		int anchovies = Banking.find("Raw anchovies").length != 0 ? Banking.find("Raw anchovies")[0].getStack() : 0;
+		int trout = Banking.find("Raw trout").length != 0 ? Banking.find("Raw trout")[0].getStack() : 0;
+		int tuna = Banking.find("Raw tuna").length != 0 ? Banking.find("Raw tuna")[0].getStack() : 0;
+		
+		// Check what to take out
+		if(anchovies > 0) {
+			item = "Raw anchovies";
+		}else if(trout > 0) {
+			item = "Raw trout";
+		}else if(tuna > 0) {
+			item = "Raw tuna";
+		}
+		
+		// If there are no items to take out
+		if(item == null) {
+			return false;
+		}
+		
+		// Take the item out
+		Banking.withdraw(28, item);
+		
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+			
+			if(Inventory.getCount(item) > 0) {
+				return true;
+			}
+			
+		    Util.randomSleep();
+		}
+		
+		JrProcessor.setStatus(JrProcessor.STATUS.NO_TRAINING_FISH);
+		return false;
+	}
 	
 	
 	

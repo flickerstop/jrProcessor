@@ -25,6 +25,7 @@ import org.tribot.script.interfaces.Starting;
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 import scripts.util.Bank;
+import scripts.util.Cooking;
 import scripts.util.GE;
 import scripts.util.Inven;
 import scripts.util.NPCTalk;
@@ -82,7 +83,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    BUYING_OVER_PRICE_ERROR, 
 	    LEAVE_1M_ERROR,
 	    MISSING_VIALS_OF_WATER,
-	    BANK_NOT_OPEN
+	    BANK_NOT_OPEN,
+	    NO_TRAINING_FISH
 	}
 	
 	@Override
@@ -157,7 +159,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.log("run(): Selected LEVEL COOKING state order");
 			// TODO here
 			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
-			stateOrder.addAll(Arrays.asList(900,200));
+			stateOrder.addAll(Arrays.asList(201,14,202,11,203));
 			Util.log("run(): Selected PROCESSING state order");
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
 			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
@@ -773,12 +775,29 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				break;
 				
 			case 201:
+				// open bank in rogues
+				if(!Bank.openRoguesDenBank()) {
+					stateOrder.clear();
+					Util.log("run() state 201: Failed to Open rogues den bank");
+				}
 				break;
 				
 			case 202:
+				// use bank in rogues
+				if(!Bank.takeOutCookingTrainingFish()) {
+					stateOrder.clear();
+					Util.log("run() state 202: Failed to Open rogues den bank");
+				}
 				break;
 				
 			case 203:
+				// cook in rogues
+				if(!Cooking.cookFishOnFire()) {
+					stateOrder.clear();
+					Util.log("run() state 202: Failed to Open rogues den bank");
+				}else {
+					stateOrder.addAll(Arrays.asList(201,14,202,11,203));
+				}
 				break;
 				
 			case 210:
@@ -934,6 +953,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					Network.updateMainTask("Unable to open bank");
 					Login.logout();
 				}
+				break;
+				
+			case NO_TRAINING_FISH:
+				//TODO;
+				//FIXME
+				// This status will happen when no fish left to level on
 				break;
 				
 			case FAILED_CLOSING:

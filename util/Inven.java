@@ -2,6 +2,7 @@ package scripts.util;
 
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Inventory;
+import org.tribot.api2007.types.RSItem;
 
 public class Inven {
 	public static boolean hasCoins() {
@@ -69,4 +70,5 @@ public class Inven {
 		Util.log("takeOutQuestItems(): Equipment worn");
 		return true;
 	}
+	
 }
