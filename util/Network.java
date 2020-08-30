@@ -21,8 +21,8 @@ import scripts.objects.ItemProcessManager;
 public class Network {
 
 	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
-	private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	//private static String urlStart = "http://flickerstop.com"; // Release
+	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -32,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v1.07";
+	public static String version = "v2.00";
 	
 	
 	public static String[] getNextItem() {

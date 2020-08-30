@@ -78,6 +78,7 @@ public class Cooking {
 	
 	private static boolean useFishOnFire(String fishName) {
 		
+		Util.log("useFishOnFire(): Clicking the first fish in inventory");
 
 		// Click use on the first item in the inventory
 		if(!Inventory.find(fishName)[0].click("Use "+fishName)) {
@@ -85,6 +86,7 @@ public class Cooking {
 		}
 		
 		
+		Util.log("useFishOnFire(): Looking for closest fire");
 		// Find the fire
 		RSObject closestFire = null;
 		int closestfireDistance = Integer.MAX_VALUE;
@@ -102,14 +104,15 @@ public class Cooking {
 			return false;
 		}
 		
+		Util.log("useFishOnFire(): Using fish on fire");
 		// Use the fish on the fire
 		if(!closestFire.click("Use "+fishName+" -> Fire")) {
 			return false;
 		}
 		
+		Util.log("useFishOnFire(): Waiting for make interface");
 		// Wait for the interface to open
 		long endTime = Util.secondsLater(10);
-		System.out.println("cookFishOnFire(): Looking for make interface...");
 		while(Util.time() < endTime) {
 			if(Interfaces.get(MAKE_INTERFACE_ID) != null && Interfaces.get(MAKE_INTERFACE_ID).isBeingDrawn() && Interfaces.get(MAKE_INTERFACE_ID).isClickable()) {
 				break;
@@ -143,14 +146,17 @@ public class Cooking {
 			}
 		}
 		
+		Util.log("useFishOnFire(): Moving mouse off screen");
 		Mouse.leaveGame(true);
 		
 		return true;
 	}
 	
+	/**
+	 * Checks what type of fish is in the inventory
+	 * @return string - type of fish
+	 */
 	private static String fishInInventory() {
-		String typeOfFish = null;
-		
 		ArrayList<String> typesOfFish = new ArrayList<String>();
 		typesOfFish.add("Raw anchovies");
 		typesOfFish.add("Raw trout");

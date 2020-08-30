@@ -155,12 +155,12 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
 			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
-		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
-			Util.log("run(): Selected LEVEL COOKING state order");
-			// TODO here
-			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
-			stateOrder.addAll(Arrays.asList(201,14,202,11,203));
-			Util.log("run(): Selected PROCESSING state order");
+//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
+//			Util.log("run(): Selected LEVEL COOKING state order");
+//			// TODO here
+//			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
+//			stateOrder.addAll(Arrays.asList(201,14,202,11,203));
+//			Util.log("run(): Selected PROCESSING state order");
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
 			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
