@@ -124,9 +124,6 @@ public class Bank {
 			
 		}
 		
-		gpInBank = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
-		platInBank = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
-		setMaxGPInBank(gpInBank);
 		return true;
 	}
 	
@@ -351,8 +348,24 @@ public class Bank {
 
 
 	public static boolean depositAll() {
-		Banking.depositAll();
 		
+		// Check if the inventory is empty already
+		if(Inventory.getAll().length == 0) {
+			long waitTill = Util.secondsLater(2);
+			while(Util.time() < waitTill) {
+			    Util.randomSleep();
+			    if(Inventory.getAll().length != 0) {
+			    	break;
+			    }
+			}
+			// Inventory is empty
+			if(Inventory.getAll().length == 0) {
+				return true;
+		    }
+		}
+		
+		
+		Banking.depositAll();
 		long waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
@@ -360,6 +373,12 @@ public class Bank {
 		    	break;
 		    }
 		}
+		
+		
+		gpInBank = Banking.find("Coins").length != 0 ? Banking.find("Coins")[0].getStack() : 0;
+		platInBank = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
+		setMaxGPInBank(gpInBank);
+		
 		return true;
 	}
 
@@ -370,13 +389,19 @@ public class Bank {
 		return maxGPInBank;
 	}
 
-	public static void setMaxGPInBank(int newMaxGPInBank) {
+	public static boolean setMaxGPInBank(int newMaxGPInBank) {
 		Util.log("setMaxGPInBank(): new: "+newMaxGPInBank);
 		Util.log("setMaxGPInBank(): old: "+maxGPInBank);
 		
 		if(newMaxGPInBank > maxGPInBank) {
 			maxGPInBank = newMaxGPInBank;
 		}
+		
+		if(gpInBank > 2000000) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public static boolean leave1mInBank() {
@@ -582,7 +607,23 @@ public class Bank {
 	}
 	
 	
-	
+	public static boolean convertCoinsToPlat() {
+		
+		// Look in the inventory to make sure there's coins
+		
+		
+		// Click the coins
+		
+		// Verify we've clicked the coins
+		
+		// Use coins -> Banker
+		
+		// Click 1 on the keyboard when the dialog is open
+		
+		// verify there's plat tokens in the inventory
+		
+		return true;
+	}
 	
 	
 	

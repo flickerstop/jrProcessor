@@ -9,7 +9,10 @@ import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.Skills;
 import org.tribot.api2007.types.RSObject;
+
+import scripts.JrProcessor;
 
 public class Cooking {
 	private static int MAKE_INTERFACE_ID = 270;
@@ -72,10 +75,20 @@ public class Cooking {
 			Util.randomSleep();
 		}
 		
+		// Check if we're over the cooking level required
+		if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) >= 68) {
+			JrProcessor.setStatus(JrProcessor.STATUS.COOKING_TRAINING_DONE);
+		}
+		
 
 		return false;
 	}
 	
+	/**
+	 * Uses the passed type of fish on the closest fire
+	 * @param fishName String - type of fish
+	 * @return boolean - true if used on fire
+	 */
 	private static boolean useFishOnFire(String fishName) {
 		
 		Util.log("useFishOnFire(): Clicking the first fish in inventory");

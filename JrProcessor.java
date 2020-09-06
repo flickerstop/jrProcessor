@@ -1,7 +1,6 @@
 package scripts;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.tribot.api.input.Mouse;
@@ -15,7 +14,6 @@ import org.tribot.api2007.Player;
 import org.tribot.api2007.Skills;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
-import org.tribot.script.interfaces.Arguments;
 import org.tribot.script.interfaces.Breaking;
 import org.tribot.script.interfaces.Ending;
 import org.tribot.script.interfaces.MessageListening07;
@@ -84,7 +82,10 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	    LEAVE_1M_ERROR,
 	    MISSING_VIALS_OF_WATER,
 	    BANK_NOT_OPEN,
-	    NO_TRAINING_FISH
+	    NO_TRAINING_FISH,
+	    COOKING_TRAINING_DONE,
+	    GP_OVER_2M_IN_BANK,
+	    GP_OVER_2M_SELL_INVENTORY
 	}
 	
 	@Override
@@ -154,7 +155,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.log("run(): Selected QUESTING state order");
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
-			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130));
+			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000));
 //		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
 //			Util.log("run(): Selected LEVEL COOKING state order");
 //			// TODO here
@@ -189,11 +190,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				// Check in with the server
 				switch(Network.getServerStatus()) {
 				case "null":
-					
 					break;
 					
 				case "nominal":
-					
 					break;
 				
 				case "sellAndWait":
@@ -221,14 +220,16 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.log(allStates);
 			
 			// Check if we need a new state path
-			if(stateOrder.size() == 0) {
+			if(stateOrder.size() == 0 && currentObjective == 0) {
 				stateOrder.addAll(Arrays.asList(2,10,14,15));
+			}else if(stateOrder.size() == 0 && currentObjective == 2) {
+				stateOrder.addAll(Arrays.asList(201,14,202,11,203));
 			}
 
 			
 			// Get the next state
 			currentState = stateOrder.removeFirst();
-			Util.log("run(): State: "+getStateString());
+			Util.log("State #"+currentState+": "+getStateString());
 			try {
 				Network.updateJrProcessor();
 			} catch (Exception e) {
@@ -883,16 +884,16 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			////////////////////////////////////////////////////////////////
 				
 			case 1000:
-				currentObjective = 1;
+				currentObjective = 0;
 				break;
 			case 1001:
-				currentObjective = 2;
+				currentObjective = 1;
 				break;
 			case 1002:
-				currentObjective = 3;
+				currentObjective = 2;
 				break;
 			case 1003:
-				currentObjective = 4;
+				currentObjective = 3;
 				break;
 				
 				
@@ -956,10 +957,27 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				break;
 				
 			case NO_TRAINING_FISH:
-				//TODO;
-				//FIXME
-				// This status will happen when no fish left to level on
+				stateOrder.clear();
+				Network.updateMainTask("Ran out of fish before level!");
+				Util.log("Ran out of fish before level!");
+				Login.logout();
 				break;
+				
+			case COOKING_TRAINING_DONE:
+				stateOrder.clear();
+				stateOrder.addAll(Arrays.asList(130,10,14));
+				break;
+				
+				
+			case GP_OVER_2M_IN_BANK:
+				
+				break;
+				
+			case GP_OVER_2M_SELL_INVENTORY:
+				Util.log("Over 2m GP in inventory.");
+				//Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,16,11,19,10,14,18,11,1));
+				break;
+				
 				
 			case FAILED_CLOSING:
 			case NEW_OFFER_ERROR:
@@ -987,7 +1005,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		try {
 			Network.announceBreakEnd();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -1010,7 +1027,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		try {
 			Network.announceBreakStart();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1026,7 +1042,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			Util.forceLog();
 			Network.announceCrash();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1078,6 +1093,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Waiting for items to buy/sell";
 		case 7:
 			return "Buying Vials of water";
+			
+			
 		case 10:
 			return "Opening Bank";
 		case 11:
@@ -1096,18 +1113,26 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Emptying bank (everything)";
 		case 18:
 			return "Taking out only cois";
+		case 19:
+			return "Converting coins to play";
+			
+			
 		case 20:
-			return "DEAD STATE";
+			return "Searching bank for process";
 		case 21:
 			return "Processing in Bank";
 		case 22:
 			return "Processing in Inventory";
+			
+			
 		case 30:
 			return "Breaking...";
 		case 31:
 			return "Login...";
 		case 32:
 			return "Doing nothing while staying logged in";
+			
+			
 		case 100: 
 			return "Open bank booth in lumby castle";
 		case 101:
@@ -1116,6 +1141,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Wear quest equipment";
 		case 103:
 			return "Use items on cauldron";
+			
+			
 		case 110:
 			return "Talk to Kaqemeex (Start quest)";
 		case 111:
@@ -1124,6 +1151,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Talk to Sanfew (2nd time)";
 		case 113:
 			return "Talk to Kaqemeex (End Quest)";
+			
+			
 		case 120:
 			return "Walk to Kaqemeex";
 		case 121:
@@ -1136,10 +1165,38 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			return "Enter Gate";
 		case 125:
 			return "Leave Sanfew House";
+			
+			
 		case 130:
 			return "Teleport to GE";
 		case 131:
 			return "Teleport to burthorpe";
+			
+		case 200:
+			return "Walking to Rogues Den";
+		case 201:
+			return "Opening bank in Rogues Den";
+		case 202:
+			return "Using bank in Rogues Den";
+		case 203:
+			return "Cooking in Rogues Den";
+			
+		case 210:
+			return "Walking to Nardah";
+		case 211:
+			return "Opening bank in Nardah";
+		case 212:
+			return "Using bank in Nardah";
+		case 213:
+			return "Cooking in Nardah";
+			
+		case 270:
+			return "Buying fish for leveling up";
+		case 271:
+			return "Buying stuff for Tuna Potatoes";
+			
+		case 900:
+			return "Turning off rooftops";
 			
 		default:
 			return "INVALID STATE";
@@ -1149,13 +1206,13 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 
 	public static String getCurrentObjectiveString() {
 		switch(currentObjective) {
-		case 1:
+		case 0:
 			return "Making Potions";
-		case 2:
+		case 1:
 			return "Druidic Ritual";
-		case 3:
+		case 2:
 			return "Leveling Cooking";
-		case 4:
+		case 3:
 			return "Cooking for GP";
 		default:
 			return "unknown";

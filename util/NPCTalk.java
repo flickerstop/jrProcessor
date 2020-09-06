@@ -49,9 +49,6 @@ public class NPCTalk {
 		Network.updateSubTask("Talking to kaqemeex");
 		waitTill = Util.secondsLater(60*3);
 		while(Util.time() < waitTill) {
-		    Util.log("kaqemeex1(): Clicking continue...");
-			NPCChat.clickContinue(true);
-			
 			// If this chat has options and the first isn't done
 			if(NPCChat.getOptions() != null) {
 				Util.log("kaqemeex1(): Chat has options (first selection menu)");
@@ -93,6 +90,9 @@ public class NPCTalk {
 					}
 				}
 			}
+			
+			Util.log("kaqemeex1(): Clicking continue...");
+			NPCChat.clickContinue(true);
 
 			
 			Util.randomSleep();

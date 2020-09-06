@@ -1005,9 +1005,15 @@ public class GE {
 		
 		Network.updateSubTask("Inventory Sold");
 		
-		Bank.setMaxGPInBank(Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0);
+		// Set the amount of GP this account has
+		if(!Bank.setMaxGPInBank(Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0)) {
+			// If the amount of GP is over the limit
+			JrProcessor.setStatus(JrProcessor.STATUS.GP_OVER_2M_SELL_INVENTORY);
+		}else {
+			JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
+		}
 		
-		JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
+		
 		
 		
 		
