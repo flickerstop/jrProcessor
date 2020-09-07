@@ -2,12 +2,15 @@ package scripts.util;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 
+import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.Game;
 import org.tribot.api2007.GrandExchange;
+import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
@@ -17,6 +20,8 @@ import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
 import org.tribot.api2007.types.RSTile;
+
+import com.sun.glass.events.KeyEvent;
 
 import scripts.JrProcessor;
 import scripts.objects.ItemProcessManager;
@@ -35,6 +40,8 @@ public class Bank {
 	public static int gpInBank = 0;
 	private static int maxGPInBank = 0;
 	public static int platInBank = 0;
+	
+	public static boolean needMule = false;
 	
 	/**
 	 * Attempts to open the bank
@@ -311,6 +318,22 @@ public class Bank {
 		return true;
 	}
 	
+	public static boolean grabPlatTokens() {
+		//Util.log("grabCoins(): ");
+		Util.log("grabPlatTokens(): Grabbing Plat Tokens");
+		int amount = Banking.find("Platinum token").length != 0 ? Banking.find("Platinum token")[0].getStack() : 0;
+		
+		if(amount > 0) {
+			if(!Banking.withdraw(0, "Platinum token")) {
+				Util.log("grabPlatTokens(): Failed at grabbing Plat Tokens");
+				return false;
+			}
+		}
+		
+		Util.randomSleep();
+		return true;
+	}
+	
 	public static boolean closeBank() {
 		if(!Banking.isBankScreenOpen()) {
 			Util.log("closeBank(): Bank already closed");
@@ -397,7 +420,7 @@ public class Bank {
 			maxGPInBank = newMaxGPInBank;
 		}
 		
-		if(gpInBank > 2000000) {
+		if(newMaxGPInBank > 2000000) {
 			return false;
 		}
 		
@@ -409,8 +432,8 @@ public class Bank {
 		int coinsInBank = Banking.find("Coins")[0].getStack();
 		
 		Util.log("leave1mInBank(): Leaving 1m in the bank");
-		
-		if(!Banking.withdraw(coinsInBank-1000000, "Coins")) {
+		//FIXME
+		if(!Banking.withdraw(coinsInBank-1500000, "Coins")) {
 			Util.log("leave1mInBank(): Unable to withdraw 1m");
 			JrProcessor.setStatus(JrProcessor.STATUS.LEAVE_1M_ERROR);
 			return false;
@@ -609,20 +632,89 @@ public class Bank {
 	
 	public static boolean convertCoinsToPlat() {
 		
-		// Look in the inventory to make sure there's coins
+		long waitTill = Util.secondsLater(5);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    
+		    if(Inventory.find("Coins").length != 0) {
+				break;
+			}
+		}
 		
+		// Look in the inventory to make sure there's coins
+		RSItem coins = Inventory.find("Coins").length != 0?Inventory.find("Coins")[0]:null;
+		
+		if(coins == null) {
+			Util.log("convertCoinsToPlat(): Unable to find coins in inventory");
+			return false;
+		}
 		
 		// Click the coins
+		if(!coins.click("Use Coins")) {
+			Util.log("convertCoinsToPlat(): Unable to click USE on coins");
+			return false;
+		}
 		
-		// Verify we've clicked the coins
+		
+		// Find the closest banker
+		RSNPC closestNPC = null;
+		int closestNPCDistance = Integer.MAX_VALUE;
+		Util.log("convertCoinsToPlat(): Finding the closest Banker");
+		// Loop through all NPCs with the correct name
+		for(RSNPC npc : NPCs.find("Banker")) {
+			int distance = Player.getPosition().distanceTo(npc.getPosition());
+			
+			if(distance < closestNPCDistance) {
+				closestNPCDistance = distance;
+				closestNPC = npc;
+			}
+		}
+		
+		if(closestNPC == null) {
+			Util.log("convertCoinsToPlat(): Unable to find banker");
+			return false;
+		}
 		
 		// Use coins -> Banker
+		if(!closestNPC.click("Use Coins -> Banker")) {
+			Util.log("convertCoinsToPlat(): Failed using coins on banker");
+			return false;
+		}
 		
 		// Click 1 on the keyboard when the dialog is open
+		Util.waitForInterface(219, 1);
 		
+		long endTime = Util.secondsLater(20);
+		Util.log("convertCoinsToPlat(): Spamming 1 now");
+		while(true) {
+			Keyboard.sendType('1');
+			Util.randomSleep();
+			
+			
+			// If the current time is larger than the end time
+			if(new Date().getTime() > endTime) {
+				Util.log("convertCoinsToPlat(): Waited long enough");
+				return false;
+			}
+			
+			if(Interfaces.get(219) == null) {
+				break;
+			}
+		}
+		
+		waitTill = Util.secondsLater(5);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    
+		    if(Inventory.find("Platinum token").length > 0) {
+				Util.log("convertCoinsToPlat(): Plat tokens in inventory");
+				Network.announceNeedMule();
+				return true;
+			}
+		}
 		// verify there's plat tokens in the inventory
-		
-		return true;
+		Util.log("convertCoinsToPlat(): Failed, no plat tokens found in inventory");
+		return false;
 	}
 	
 	

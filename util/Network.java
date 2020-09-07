@@ -21,8 +21,8 @@ import scripts.objects.ItemProcessManager;
 public class Network {
 
 	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
-	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	private static String urlStart = "http://flickerstop.com"; // Release
+	private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	//private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -32,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v2.02";
+	public static String version = "v2.03";
 	
 	
 	public static String[] getNextItem() {
@@ -86,10 +86,15 @@ public class Network {
 		return new String[]{"Bird nest","null"};
 	}
 	
-	public static String[] getNextMuleTarget() throws Exception {
-		String data = getHTML(urlStart+"/post/bot/muleData");
+	public static String[] getNextMuleTarget(){
+		String data = "null";
+		try {
+			data = getHTML(urlStart+"/get/bot/getNextBotToMule/"+ServerInfo.getServer());
+		} catch (Exception e) {
+			return null;
+		}
 		
-		if(data.equalsIgnoreCase("none")) {
+		if(data.equalsIgnoreCase("null")) {
 			return null;
 		}
 		
@@ -176,6 +181,20 @@ public class Network {
 
         post(params,"/jrProcessorUpdate");
 	}
+	
+	public static void announceNeedMule(){
+		Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", playerName);
+        params.put("server", ServerInfo.getServer());
+
+        try {
+			post(params,"/announceMule");
+		} catch (Exception e) {
+			Util.log("Error updating main task");
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public static void updateMainTask(String task){
 		Map<String,Object> params = new LinkedHashMap<>();

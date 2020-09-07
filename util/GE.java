@@ -1000,16 +1000,18 @@ public class GE {
 			Util.randomSleepRange(1000, 2000);
 		}
 		
-		Bank.setMaxGPInBank(Inven.countCoins());
 		Util.log("sellInventory(): coins "+Inven.countCoins());
 		
 		Network.updateSubTask("Inventory Sold");
 		
 		// Set the amount of GP this account has
-		if(!Bank.setMaxGPInBank(Inventory.find("Coins").length != 0 ? Inventory.find("Coins")[0].getStack() : 0)) {
+		if(!Bank.setMaxGPInBank(Inven.countCoins())) {
+			Util.log("sellInventory(): GP over limit, converting to plat tokens");
 			// If the amount of GP is over the limit
+			Bank.needMule = true;
 			JrProcessor.setStatus(JrProcessor.STATUS.GP_OVER_2M_SELL_INVENTORY);
 		}else {
+			Util.log("sellInventory(): GP under limit");
 			JrProcessor.setStatus(JrProcessor.STATUS.SUCCESS);
 		}
 		

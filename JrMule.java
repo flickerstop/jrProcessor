@@ -16,6 +16,8 @@ import scripts.util.Util;
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrMule")
 public class JrMule extends Script implements Starting, Ending {
 
+	private boolean isSleep = false;
+	
 	@Override
 	public void onEnd() {
 		// TODO Auto-generated method stub
@@ -24,68 +26,78 @@ public class JrMule extends Script implements Starting, Ending {
 
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
 		Util.clearConsole();
+		this.setLoginBotState(false);
 	}
 
 	@Override
 	public void run() {
-//		Util.setMule();
-//		this.setLoginBotState(false);
-//		while(true) {
-//			
-//			Util.log("making sure we're logged out");
-//			// Check if we're all the login screen
-//			if(Login.getLoginState() != Login.STATE.LOGINSCREEN) {
-//				Util.log("Logging out");
-//				// if not, log out
-//				Login.logout();
-//				Util.randomSleepRange(3000,4000,false);
-//			}
-//			
-//			
-//			
-//			// check if there's any plat tokens to collect
-//			try {
-//				Util.log("Getting next target");
-//				String[] muleTarget = Network.getNextMuleTarget();
-//				
-//				// There's a target
-//				if(muleTarget != null) {
-//					Network.updateMuleTask("Trading With: "+muleTarget[0]);
-//					Util.log("Target found!");
-//					Util.log("Name: "+muleTarget[0]);
-//					Util.log("World: "+muleTarget[1]);
-//					if(!Trade.muleTradeBot(muleTarget)) {
-//						// Trade failed
-//						Util.log("Trading failed!");
-//						Network.updateMuleData();
-//						Network.updateMuleTask("Trading Failed!");
-//						Util.randomSleepRange(3000,4000);
-//						Login.logout();
-//						Util.randomSleepRange(45000, 60000,false);
-//					}else {
-//						Util.log("Trading Success!");
-//						Network.updateMuleTask("Waiting between trades...");
-//						Network.updateMuleData();
-//						Util.randomSleepRange(3000,4000);
-//						Login.logout();
-//						Util.randomSleepRange(60000, 120000,false);
-//					}
-//				}else {
-//					Util.log("No target to trade");
-//					Network.updateMuleTask("No trades needed");
-//					Util.randomSleepRange(145000, 180000,false);
-//				}
-//			}catch(Exception e) {
-//				e.printStackTrace();
-//				Login.logout();
-//				Util.randomSleepRange(45000, 80000,false);
-//			}
-//			
-//			
-//
-//		}
+		Util.setMule();
+		this.setLoginBotState(false);
+		
+		while(true) {
+			// Check if we're all the login screen
+			Util.log("making sure we're logged out");
+			
+			if(Login.getLoginState() != Login.STATE.LOGINSCREEN) {
+				Util.log("Logging out");
+				// if not, log out
+				Login.logout();
+				long waitTill = Util.secondsLater(30);
+				while(Util.time() < waitTill) {
+				    Util.randomSleep();
+				    // Wait till we're at the login screen
+				    if(Login.getLoginState() == Login.STATE.LOGINSCREEN) {
+				    	break;
+				    }
+				}
+			}
+			
+			if(isSleep) {
+				Util.log("Sleeping for 1-3 minutes...");
+				Util.randomSleepRange(1000*60*1, 1000*60*3,true);
+				isSleep = false;
+			}
+			
+			// Check if there's any new bot to mule
+			String[] muleTarget = Network.getNextMuleTarget();
+			
+			// If there's no target, wait then repeat
+			if(muleTarget == null) {
+				Util.log("No target found");
+				isSleep = true;
+				continue;
+			}
+			
+			// Hop to the world the mule is on
+			Util.log("Target found!");
+			Util.log("Name: "+muleTarget[0]);
+			Util.log("World: "+muleTarget[1]);
+			
+			// Hop to the world
+			if(!WorldHopper.changeWorld(Integer.parseInt(muleTarget[1]))){
+				Util.log("Failed to switch worlds");
+				isSleep = true;
+				continue;
+			}
+			
+			// Login
+			if(!Login.login()) {
+				Util.log("Failed to login");
+				isSleep = true;
+				continue;
+			}
+			
+			
+			if(!Trade.tradeBot(muleTarget[0])) {
+				Util.log("Trading failed.");
+				isSleep = true;
+				continue;
+			}
+			
+			// Find the next target
+			isSleep = true;
+		}
 	}
 	
 

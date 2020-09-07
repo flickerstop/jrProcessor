@@ -8,9 +8,11 @@ import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.Game;
 import org.tribot.api2007.GameTab;
+import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.Options;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.Players;
 import org.tribot.api2007.Skills;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
@@ -28,6 +30,7 @@ import scripts.util.GE;
 import scripts.util.Inven;
 import scripts.util.NPCTalk;
 import scripts.util.Network;
+import scripts.util.ServerInfo;
 import scripts.util.Teleport;
 import scripts.util.Trade;
 import scripts.util.Util;
@@ -156,12 +159,16 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
 			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000));
+			
+			
 //		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
 //			Util.log("run(): Selected LEVEL COOKING state order");
 //			// TODO here
 //			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
 //			stateOrder.addAll(Arrays.asList(201,14,202,11,203));
 //			Util.log("run(): Selected PROCESSING state order");
+			
+			
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
 			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
@@ -196,9 +203,9 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					break;
 				
 				case "sellAndWait":
-					stateOrder.clear();
-					stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
-					isTradeTime = true;
+//					stateOrder.clear();
+//					stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
+//					isTradeTime = true;
 					break;
 					
 				default:
@@ -207,6 +214,25 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 			}
 			
+			
+			/////////////////////////////////////////////////////////////////////////
+			// Check if the mule is nearby
+			if(Players.find(ServerInfo.getMuleName()).length > 0 && stateOrder.size() > 0 && Bank.needMule) {
+				// Mule is nearby
+				Util.log("Mule Nearby");
+				// wait for the next state to either be open bank or open GE
+				if(stateOrder.get(0) == 1 || stateOrder.get(0) == 10) {
+					Util.log("Ping");
+					stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(10,14,43,11,40,41,42));
+				}
+				
+			}
+			
+			
+			
+			
+			/////////////////////////////////////////////////////////////////////////
+
 			
 			
 			//Network.updateSubTask("aaaaaaaaaaaaaa");
@@ -504,7 +530,14 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 			break;
 			////////////////////////////////////////////////////////////////
-							
+			case 19:
+				if(!Bank.convertCoinsToPlat()) {
+					Util.log("run(): Unable to convert coins to plat");
+				}
+				break;
+			
+			
+			////////////////////////////////////////////////////////////////			
 			////////////////////////////////////////////////////////////////
 			case 20: // Check bank for next process
 				Util.log("run(): Looking for new process");
@@ -602,6 +635,45 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				isRunning = false;
 				
 				break;
+			////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////
+				
+			case 40:
+				Walk.miniMapWalkToRandom(3162, 3487, 3167, 3487, 0);
+				break;
+				
+			case 41:
+				waitTill = Util.secondsLater(60*2);
+				while(Util.time() < waitTill) {
+				    Util.randomSleep();
+				    
+				    if(isTradeTime) {
+				    	break;
+				    }
+				}
+				break;
+				
+			case 42:
+				if(!Trade.tradeMule()) {
+					// Check if there's plat tokens in the inventory
+					if(Inventory.find("Platinum token").length != 0) {
+						Network.announceNeedMule();
+					}else {
+						Util.log("run() state 42: Error while trading, but Trading worked");
+						Bank.needMule = false;
+					}
+				}else {
+					Bank.needMule = false;
+				}
+				break;
+				
+			case 43:
+				if(!Bank.grabPlatTokens()) {
+					Util.log("run() state 43: Failed grabbing plat tokens");
+					stateOrder.clear();
+				}
+				break;
+				
 			////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////
 				
@@ -975,7 +1047,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				
 			case GP_OVER_2M_SELL_INVENTORY:
 				Util.log("Over 2m GP in inventory.");
-				//Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,16,11,19,10,14,18,11,1));
+				stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(2,10,14,16,11,19,10,14,18,11,1));
 				break;
 				
 				
@@ -1018,6 +1090,11 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 
 	@Override
 	public void onPreBreakStart(long arg0) {
+		// Make sure we're not waiting for the mule
+		while(Bank.needMule) {
+			Util.randomSleepRange(1000, 2000);
+		}
+		
 		stateOrder.addFirst(30);
 		// Wait for when we can break
 		while(!isReadyToBreak) {
@@ -1059,7 +1136,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	@Override    
 	public void tradeRequestReceived(String s) {
 		Util.log("Trade from: " + s);
-        if(s.equalsIgnoreCase(Trade.getMuleName())){
+        if(s.equalsIgnoreCase(ServerInfo.getMuleName())){
         	isTradeTime = true;
         }
     }

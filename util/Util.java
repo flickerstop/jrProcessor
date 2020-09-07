@@ -349,7 +349,7 @@ public class Util{
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
 		    
-		    if(Interfaces.get(interfaceNum, childNum).isClickable()) {
+		    if(Interfaces.get(interfaceNum, childNum) != null && Interfaces.get(interfaceNum, childNum).isClickable()) {
 		    	break;
 		    }
 		}

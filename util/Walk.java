@@ -10,6 +10,7 @@ import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
+import org.tribot.api2007.Walking;
 import org.tribot.api2007.WebWalking;
 import org.tribot.api2007.types.RSObject;
 import org.tribot.api2007.types.RSPlayer;
@@ -72,6 +73,28 @@ public class Walk {
 		
 		
 		return walkToPosition(x,y,z);
+	}
+	
+	public static boolean miniMapWalkToRandom(int x1, int y1, int x2, int y2, int z) {
+		
+		int x = 0;
+		
+		if(x1 > x2) {
+			x = General.random(x2, x1);
+		}else {
+			x = General.random(x1, x2);
+		}
+		
+		int y = 0;
+		
+		if(y1 > y2) {
+			y = General.random(y2, y1);
+		}else {
+			y = General.random(y1, y2);
+		}
+		
+		
+		return Walking.clickTileMM(new RSTile(x,y,z), 1);
 	}
 	
 	public static boolean climbUpStairs() {
