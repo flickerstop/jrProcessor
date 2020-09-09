@@ -32,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v2.03";
+	public static String version = "v2.04";
 	
 	
 	public static String[] getNextItem() {
@@ -128,6 +128,21 @@ public class Network {
 		
 		return data;
 		
+	}
+	
+	
+	public static String getBreakSchedule(){
+		Map<String,Object> params = new LinkedHashMap<>();
+        params.put("name", playerName);
+        params.put("server", ServerInfo.getServer());
+
+        try {
+			return post(params,"/createBreakManager/");
+		} catch (Exception e) {
+			Util.log("Error updating main task");
+			e.printStackTrace();
+		}
+        return "null";
 	}
 	
 	private static String getHTML(String urlToRead) throws Exception {

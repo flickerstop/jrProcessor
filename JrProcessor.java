@@ -25,6 +25,7 @@ import org.tribot.script.interfaces.Starting;
 import scripts.objects.ItemProcessManager;
 import scripts.objects.ProcessingObject;
 import scripts.util.Bank;
+import scripts.util.BreakManager;
 import scripts.util.Cooking;
 import scripts.util.GE;
 import scripts.util.Inven;
@@ -38,11 +39,16 @@ import scripts.util.Walk;
 
 
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrProcessor")
-public class JrProcessor extends Script implements Starting, Breaking, PreBreaking, Ending, MessageListening07{
+public class JrProcessor extends Script implements Starting, Ending, MessageListening07{
 	
-	private static boolean isReadyToBreak = false;
-	private static boolean isBreaking = false;
+//	private static boolean isReadyToBreak = false;
+//	private static boolean isBreaking = false;
 	private static boolean isTradeTime = false;
+	
+	// For break manager
+	private static boolean isDoingWork = false;
+	private static boolean isBreaking = false;
+	private static boolean isTradingMule = false;
 	
 	
 	private static final int MIN_OFFSET = 10;
@@ -63,8 +69,6 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	private static int currentObjective = 0;
 	
 	
-	private static final long TIME_BETWEEN_SERVER_CHECK = 60000L;
-	private static long lastServerCheck = Util.time() + TIME_BETWEEN_SERVER_CHECK;
 	
 	public static enum STATUS {
 		NONE,
@@ -144,21 +148,15 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 		Network.init("jrProcessor");
 		
-		
-		// Starting order
-		//stateOrder.addAll(Arrays.asList(11,2,1,4,2,10,14));
-		
-		// testing mule
-		//stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
+		BreakManager.buildBreakSchedule();
+		BreakManager.outputSchedule();
+		//Util.log(BreakManager.getCurrentTask());
 		
 		// Find where to start
-		
-		
 		if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) == 1) {
 			Util.log("run(): Selected QUESTING state order");
-			// 100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130
 			Camera.setCamera(0,100);
-			stateOrder.addAll(Arrays.asList(1001,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000));
+			stateOrder.addAll(Arrays.asList(1001,51,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000,52));
 			
 			
 //		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
@@ -176,67 +174,78 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 		
 					
 		while(isRunning) {
+			
+			
+			
+			
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			// Check if we're logged out or out of membership
 			Util.log("========================================");
 			// Check if we are logged out
-			if(Login.getLoginState() != Login.STATE.INGAME) {
+			if(!isBreaking && Login.getLoginState() != Login.STATE.INGAME) {
 				Util.log("run(): Account not logged in!");
 				stateOrder.addFirst(31);
 			}
 			
 			// Check if any membership is left
-			if(Util.getMembershipLeft().equalsIgnoreCase("none")) {
+			if(!isBreaking && Util.getMembershipLeft().equalsIgnoreCase("none")) {
 				Util.log("No membership left");
 				Login.logout();
 				isRunning = false;
 				return;
 			}
 			
-			// Check if we should check in with the server
-			if((lastServerCheck + TIME_BETWEEN_SERVER_CHECK) <= Util.time() && !isTradeTime) {
-				lastServerCheck = Util.time();
-				// Check in with the server
-				switch(Network.getServerStatus()) {
-				case "null":
-					break;
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			
+			//Util.log("Break Manager Task: "+BreakManager.getCurrentTask());
+			BreakManager.outputSchedule();
+			
+			switch(BreakManager.getCurrentTask()) {
+			case 0: // Sleeping
+			case 1: // Breaking
+				// If we are currently not doing a job
+				if(!isDoingWork && !isBreaking) {
+					// If the bot currently needs a mule
+					if(Bank.needMule) {
+						if(!isTradingMule) {
+							stateOrder.clear();
+							stateOrder.add(32);
+						}
+					}else {
+						stateOrder.clear();
+						stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(53,50,54));
+					}
 					
-				case "nominal":
-					break;
-				
-				case "sellAndWait":
-//					stateOrder.clear();
-//					stateOrder.addAll(Arrays.asList(2,10,14,17,11,1,3,6,4,2,10,14,16,11,32));
-//					isTradeTime = true;
-					break;
-					
-				default:
-					break;
-				
 				}
+				break;
+				
+			// Making pots
+			case 10:
+				// Work like normal
+				break;
+				
+			default:
+				break;
 			}
 			
-			
-			/////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////////////////////
 			// Check if the mule is nearby
-			if(Players.find(ServerInfo.getMuleName()).length > 0 && stateOrder.size() > 0 && Bank.needMule) {
+			if(!isBreaking && Players.find(ServerInfo.getMuleName()).length > 0 && stateOrder.size() > 0 && Bank.needMule) {
 				// Mule is nearby
 				Util.log("Mule Nearby");
 				// wait for the next state to either be open bank or open GE
-				if(stateOrder.get(0) == 1 || stateOrder.get(0) == 10) {
+				if(stateOrder.get(0) == 1 || stateOrder.get(0) == 10 || stateOrder.get(0) == 32) {
+					isTradingMule = true;
 					Util.log("Ping");
 					stateOrder = Util.addToStartOfArray(stateOrder, Arrays.asList(10,14,43,11,40,41,42));
 				}
 				
 			}
-			
-			
-			
-			
-			/////////////////////////////////////////////////////////////////////////
-
-			
-			
-			//Network.updateSubTask("aaaaaaaaaaaaaa");
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			// Figure out what's next
 			Network.updateSubTask("Getting new state");
+			
 			
 			// Output the next states
 			String allStates = "";
@@ -245,7 +254,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			}
 			Util.log(allStates);
 			
-			// Check if we need a new state path
+			//////////////////////////////
+			// If there are no more states left, use the default
 			if(stateOrder.size() == 0 && currentObjective == 0) {
 				stateOrder.addAll(Arrays.asList(2,10,14,15));
 			}else if(stateOrder.size() == 0 && currentObjective == 2) {
@@ -253,6 +263,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			}
 
 			
+			//////////////////////////////
 			// Get the next state
 			currentState = stateOrder.removeFirst();
 			Util.log("State #"+currentState+": "+getStateString());
@@ -502,7 +513,8 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 				if(hasNoTask) {
 					// Only if there are no processes to do after 5 checks
-					stateOrder.addAll(Arrays.asList(10,14,12,13,11,1,3,4,5));
+					// FIXME this will infinitely loop work. Find a way to check if our next task is still making pots, if it is then add state 5 to the list
+					stateOrder.addAll(Arrays.asList(10,14,12,13,11,1,3,4,51,52,5));
 				}
 				
 				
@@ -582,21 +594,21 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			////////////////////////////////////////////////////////////////
 							
 			////////////////////////////////////////////////////////////////
-			case 30:
-				Util.log("run(): Break Starting");
-				Login.logout();
-				isReadyToBreak = true;
-				Util.randomSleepRange(10000, 20000);
-				while(isBreaking) {
-					Util.randomSleepRange(10000,20000);
-				}
-				isReadyToBreak = false;
-				Util.log("run(): Break Ending");
-				
-				Util.log("run(): logging in");
-				Login.login();
-				
-				break;
+//			case 30:
+//				Util.log("run(): Break Starting");
+//				Login.logout();
+//				isReadyToBreak = true;
+//				Util.randomSleepRange(10000, 20000);
+//				while(isBreaking) {
+//					Util.randomSleepRange(10000,20000);
+//				}
+//				isReadyToBreak = false;
+//				Util.log("run(): Break Ending");
+//				
+//				Util.log("run(): logging in");
+//				Login.login();
+//				
+//				break;
 			
 			
 			
@@ -621,19 +633,7 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 			
 			////////////////////////////////////////////////////////////////
 			case 32:
-				long waitUntil = Util.secondsLater(60*45);
-				while(true) {
-					Util.randomSleepRange(60000, 180000);
-					Mouse.randomRightClick();
-					Mouse.leaveGame(true);
-					if(Util.time() > waitUntil) {
-						break;
-					}
-				}
-				
-				Login.logout();
-				isRunning = false;
-				
+				Util.randomSleepRange(1000*10, 1000*20);				
 				break;
 			////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////
@@ -661,9 +661,11 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 					}else {
 						Util.log("run() state 42: Error while trading, but Trading worked");
 						Bank.needMule = false;
+						isTradingMule = false;
 					}
 				}else {
 					Bank.needMule = false;
+					isTradingMule = false;
 				}
 				break;
 				
@@ -674,6 +676,66 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 				}
 				break;
 				
+			////////////////////////////////////////////////////////////////
+				
+			// Break for 5-20 minutes
+			case 50:
+				Util.randomSleepRange(1000*60*5, 1000*60*20, false);
+				break;
+				
+			// Mark doing work
+			case 51:
+				isDoingWork = true;
+				break;
+				
+			// Mark NOT doing work
+			case 52:
+				isDoingWork = false;
+				break;
+				
+			// Prepare for breaking
+			case 53:
+				isBreaking = true;
+				if(!Login.logout()) {
+					Util.log("Unable to log out for breaking.");
+					isRunning = false;
+					return;
+				}
+				// TODO announce sleep or break
+				break;
+				
+			// Check if we need to break again
+			case 54:
+				// If we're still on a break
+				if(BreakManager.getCurrentTask() == 0 || BreakManager.getCurrentTask() == 1) {
+					stateOrder.clear();
+					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(50,54));
+				}else {
+					stateOrder.clear();
+					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(55));
+				}
+				break;
+				
+			// Come off break
+			case 55:
+				
+				switch(currentObjective) {
+				case 0: // Making Pots
+					stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
+					break;
+				
+				case 1: // Questing
+					stateOrder.addAll(Arrays.asList(1001,51,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000,52));
+					break;
+					
+				case 2: // Leveling cooking
+					break;
+					
+				case 3: // Cooking for GP
+					break;
+				
+				}
+				break;
 			////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////
 				
@@ -1070,47 +1132,47 @@ public class JrProcessor extends Script implements Starting, Breaking, PreBreaki
 	}
 
 
-	@Override
-	public void onBreakEnd() {
-		Util.log("Break End");
-		isBreaking = false;
-		try {
-			Network.announceBreakEnd();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+//	@Override
+//	public void onBreakEnd() {
+//		Util.log("Break End");
+//		isBreaking = false;
+//		try {
+//			Network.announceBreakEnd();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 
-	@Override
-	public void onBreakStart(long arg0) {
-		Util.log("Break Start");
-	}
-
-
-	@Override
-	public void onPreBreakStart(long arg0) {
-		// Make sure we're not waiting for the mule
-		while(Bank.needMule) {
-			Util.randomSleepRange(1000, 2000);
-		}
-		
-		stateOrder.addFirst(30);
-		// Wait for when we can break
-		while(!isReadyToBreak) {
-			Util.randomSleepRange(100, 200);
-		}
-		
-		try {
-			Network.announceBreakStart();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		// We are now breaking
-		isBreaking = true;
-		
-	}
+//	@Override
+//	public void onBreakStart(long arg0) {
+//		Util.log("Break Start");
+//	}
+//
+//
+//	@Override
+//	public void onPreBreakStart(long arg0) {
+//		// Make sure we're not waiting for the mule
+//		while(Bank.needMule) {
+//			Util.randomSleepRange(1000, 2000);
+//		}
+//		
+//		stateOrder.addFirst(30);
+//		// Wait for when we can break
+//		while(!isReadyToBreak) {
+//			Util.randomSleepRange(100, 200);
+//		}
+//		
+//		try {
+//			Network.announceBreakStart();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		
+//		// We are now breaking
+//		isBreaking = true;
+//		
+//	}
 
 
 	@Override
