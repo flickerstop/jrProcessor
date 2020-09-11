@@ -702,7 +702,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					isRunning = false;
 					return;
 				}
-				// TODO announce sleep or break
+				Network.announceBreakStart();
 				break;
 				
 			// Check if we need to break again
@@ -741,6 +741,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					isRunning = false;
 					return;
 				}
+				Network.announceBreakEnd();
 				isBreaking = false;
 				break;
 			////////////////////////////////////////////////////////////////

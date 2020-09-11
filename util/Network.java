@@ -20,9 +20,9 @@ import scripts.objects.ItemProcessManager;
 
 public class Network {
 
-	private static String urlStart = "http://192.168.2.32"; // LAPTOP
+	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
 	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
-	//private static String urlStart = "http://flickerstop.com"; // Release
+	private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
 	private static String playerName = "";
@@ -252,12 +252,16 @@ public class Network {
 	}
 	
 	
-	public static void announceBreakStart() throws Exception {
+	public static void announceBreakStart(){
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("server", ServerInfo.getServer());
 
-        post(params,"/breakStart");
+        try {
+			post(params,"/breakStart");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void sendLog(String logData) throws Exception {
@@ -269,12 +273,16 @@ public class Network {
         post(params,"/log");
 	}
 	
-	public static void announceBreakEnd() throws Exception {
+	public static void announceBreakEnd(){
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("server", ServerInfo.getServer());
 
-        post(params,"/breakEnd");
+        try {
+			post(params,"/breakEnd");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void announceCrash() throws Exception {
