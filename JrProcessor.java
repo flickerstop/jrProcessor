@@ -154,6 +154,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 		
 		// Find where to start
 		if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) == 1) {
+			currentObjective = 1;
 			Util.log("run(): Selected QUESTING state order");
 			Camera.setCamera(0,100);
 			stateOrder.addAll(Arrays.asList(1001,51,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000,52));
@@ -168,7 +169,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			
 			
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
-			stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
+			stateOrder.addAll(Arrays.asList(1000,51,11,2,1,4,2,10,14));
 			Util.log("run(): Selected PROCESSING state order");
 		}
 		
@@ -205,7 +206,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			case 0: // Sleeping
 			case 1: // Breaking
 				// If we are currently not doing a job
-				if(!isDoingWork && !isBreaking) {
+				if(currentObjective != 1 && !isDoingWork && !isBreaking) {
 					// If the bot currently needs a mule
 					if(Bank.needMule) {
 						if(!isTradingMule) {
@@ -248,11 +249,11 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			
 			
 			// Output the next states
-			String allStates = "";
-			for(int state : stateOrder) {
-				allStates += state+"->";
-			}
-			Util.log(allStates);
+//			String allStates = "";
+//			for(int state : stateOrder) {
+//				allStates += state+"->";
+//			}
+//			Util.log(allStates);
 			
 			//////////////////////////////
 			// If there are no more states left, use the default
@@ -390,7 +391,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
                 // if there is no error
                 if(!isError) {
                 	
-                	amountToBuy = (int)Math.floor((totalCoins-30000)/totalPrice);
+                	amountToBuy = (int)Math.floor((totalCoins-50000)/totalPrice);
                 	
                 	if(amountToBuy > MAX_ITEMS) {
     					amountToBuy = MAX_ITEMS;
@@ -721,7 +722,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 				switch(currentObjective) {
 				case 0: // Making Pots
-					stateOrder.addAll(Arrays.asList(1000,11,2,1,4,2,10,14));
+					stateOrder.addAll(Arrays.asList(1000,51,11,2,1,4,2,10,14));
 					break;
 				
 				case 1: // Questing
@@ -735,6 +736,12 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					break;
 				
 				}
+				if(!Login.login()) {
+					Util.log("Unable to login for breaking.");
+					isRunning = false;
+					return;
+				}
+				isBreaking = false;
 				break;
 			////////////////////////////////////////////////////////////////
 			////////////////////////////////////////////////////////////////

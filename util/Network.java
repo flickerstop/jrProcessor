@@ -20,8 +20,8 @@ import scripts.objects.ItemProcessManager;
 
 public class Network {
 
-	//private static String urlStart = "http://192.168.2.32"; // LAPTOP
-	private static String urlStart = "http://192.168.2.63"; // DESKTOP
+	private static String urlStart = "http://192.168.2.32"; // LAPTOP
+	//private static String urlStart = "http://192.168.2.63"; // DESKTOP
 	//private static String urlStart = "http://flickerstop.com"; // Release
 	
 	
@@ -32,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v2.04";
+	public static String version = "v2.05";
 	
 	
 	public static String[] getNextItem() {
@@ -135,6 +135,8 @@ public class Network {
 		Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("server", ServerInfo.getServer());
+        params.put("day", BreakManager.getDay());
+        params.put("hour", BreakManager.getHour());
 
         try {
 			return post(params,"/createBreakManager/");

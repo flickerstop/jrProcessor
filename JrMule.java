@@ -1,5 +1,6 @@
 package scripts;
 
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Login;
 import org.tribot.api2007.WorldHopper;
 import org.tribot.script.Script;
@@ -59,6 +60,7 @@ public class JrMule extends Script implements Starting, Ending {
 				isSleep = false;
 			}
 			
+			Camera.setCamera(0,100);
 			// Check if there's any new bot to mule
 			String[] muleTarget = Network.getNextMuleTarget();
 			

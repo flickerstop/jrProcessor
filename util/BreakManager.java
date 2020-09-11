@@ -3,6 +3,8 @@ package scripts.util;
 import java.util.Calendar;
 import java.util.LinkedList;
 
+import org.tribot.api.General;
+
 public class BreakManager {
 	private static LinkedList<LinkedList<Integer>> breakSchedule = new LinkedList<LinkedList<Integer>>();
 	
@@ -19,14 +21,21 @@ public class BreakManager {
 		
 		Util.log("buildBreakSchedule(): Converting schedule");
 		
+		Util.log("-------------------------");
+		Util.log(networkSchedule);
+		Util.log("-------------------------");
+		
+		
 		for(String day : networkSchedule.split("\\],\\[")) {
 			LinkedList<Integer> dayArray = new LinkedList<Integer>();
 			String dayString = day.replaceAll("[\\[\\]]", "");
 			
+			
 			for(String hour : dayString.split(",")) {
 				int hourInt = Integer.parseInt(hour);
-				dayArray.push(hourInt);
+				dayArray.add(hourInt);
 			}
+			
 			
 			breakSchedule.push(dayArray);
 		}
@@ -70,5 +79,13 @@ public class BreakManager {
 		int hourOfTheDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 		
 		return breakSchedule.get(dayOfTheWeek).get(hourOfTheDay);
+	}
+	
+	public static int getDay() {
+		return  Calendar.getInstance().get(Calendar.DAY_OF_WEEK)-1;
+	}
+	
+	public static int getHour() {
+		return Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 	}
 }

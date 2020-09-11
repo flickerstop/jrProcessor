@@ -123,7 +123,7 @@ public class Util{
 	
 	public static void log(String output) {
 		
-		System.out.println(output);
+		General.println(output);
 		
 		Date date = new Date(); 
 		dataLog.add(formatter.format(date) + ": " + output);
