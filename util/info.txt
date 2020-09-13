@@ -8,7 +8,7 @@ Method
 
     No method will open/close interfaces at the start
 
-
+Util.log("case ##: DESCRIPTION");
 
 STATES
 
@@ -32,6 +32,7 @@ STATES
 16  leave 1m in bank
 17  empty bank (Everything)
 18  take out coins
+19  convert coins to plat
 
 #PROCESS
 20  search bank for process
@@ -39,9 +40,23 @@ STATES
 22  process in inventory
 
 #OTHER
-30  breaking
+30  breaking (old version)
 31  login
-32  idle (wait for bank to trade)
+32  idle for 10-20 seconds
+
+#MULEING
+40  walk to mule spot
+41  wait for mule to trade
+42  trade with mule
+43  take plat out of bank
+
+#BreakManager
+50  break for 5-20 minutes
+51  mark doing work
+52  mark not doing work
+53  prepare for break
+54  check if we need to break again
+55  come off break
 
 #QUEST
 100 Open bank booth in lumby castle
@@ -79,9 +94,11 @@ STATES
 213 cook in nardah
 
 270 buy fish for leveling up
+271 buy stuff for tuna potatos
 
 
 
+900 Turn off rooftops
 
 #Set current Objective
 1000 Set making pots
@@ -91,9 +108,11 @@ STATES
 
 
 
-# Objectives
-1   Making pots
-2   Questing
+# currentObjective
+0   Making pots
+1   Questing
+2   Leveling cooking
+3   Cooking for GP
 
 
 POST TYPES (/post/bot)
