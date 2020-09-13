@@ -494,8 +494,8 @@ public class Bank {
 		boolean hasRat = Banking.find("Raw rat meat").length != 0 ? true : false;
 		boolean hasBear = Banking.find("Raw bear meat").length != 0 ? true : false;
 		boolean hasChicken = Banking.find("Raw chicken").length != 0 ? true : false;
-		boolean hasGames = Banking.find("Games necklace(8)").length != 0 ? true : false;
-		boolean hasWealth = Banking.find("Ring of wealth (5)").length != 0 ? true : false;
+		boolean hasGames = Banking.findByNames(Items.gamesNecky()).length != 0 ? true : false;
+		boolean hasWealth = Banking.findByNames(Items.ringOfWealth()).length != 0 ? true : false;
 		
 		if(!hasBeef || !hasRat || !hasBear || !hasChicken || !hasGames || !hasWealth) {
 			Util.log("takeOutQuestItems(): Missing item(s)");
@@ -508,8 +508,8 @@ public class Bank {
 		items.add("Raw rat meat");
 		items.add("Raw bear meat");
 		items.add("Raw chicken");
-		items.add("Games necklace(8)");
-		items.add("Ring of wealth (5)");
+		items.add(Banking.findByNames(Items.gamesNecky())[0].getDefinition().getName());
+		items.add(Banking.findByNames(Items.ringOfWealth())[0].getDefinition().getName());
 		Network.updateSubTask("Taking out items");
 		// Loop until we have no more items to move out or 3 minutes have passed
 		long maxWait = Util.secondsLater(60*3);
@@ -629,6 +629,66 @@ public class Bank {
 		return false;
 	}
 	
+	public static boolean checkForImpCatcherItems() {
+		boolean hasRed = Banking.find("Red bead").length != 0 ? true : false;
+		boolean hasYellow = Banking.find("Yellow bead").length != 0 ? true : false;
+		boolean hasBlack = Banking.find("Black bead").length != 0 ? true : false;
+		boolean hasWhite = Banking.find("White bead").length != 0 ? true : false;
+		
+		boolean hasNecklace = Banking.findByNames(Items.necklaceOfPassage()).length != 0 ? true : false;
+		
+		if(!hasRed || !hasYellow || !hasBlack || !hasWhite || !hasNecklace) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean withdrawImpCatcherItems() {
+		
+		if(!Banking.withdraw(1, "Red bead")) {
+			Util.log("checkForImpCatcherItems(): Failed withdrawing Red Bead");
+			return false;
+		}
+		
+		if(!Banking.withdraw(1, "Yellow bead")) {
+			Util.log("checkForImpCatcherItems(): Failed withdrawing Yellow Bead");
+			return false;
+		}
+		
+		if(!Banking.withdraw(1, "Black bead")) {
+			Util.log("checkForImpCatcherItems(): Failed withdrawing Black Bead");
+			return false;
+		}
+		
+		if(!Banking.withdraw(1, "White bead")) {
+			Util.log("checkForImpCatcherItems(): Failed withdrawing White Bead");
+			return false;
+		}
+		
+		if(!Banking.withdrawByNames(1, Items.necklaceOfPassage())) {
+			Util.log("checkForImpCatcherItems(): Failed withdrawing Necklace of passage");
+			return false;
+		}
+		
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    
+		    boolean hasRed = Inventory.find("Red bead").length != 0 ? true : Banking.withdraw(1, "Red bead");
+			boolean hasYellow = Inventory.find("Yellow bead").length != 0 ? true : Banking.withdraw(1, "Yellow bead");
+			boolean hasBlack = Inventory.find("Black bead").length != 0 ? true : Banking.withdraw(1, "Black bead");
+			boolean hasWhite = Inventory.find("White bead").length != 0 ? true : Banking.withdraw(1, "White bead");
+			boolean hasNecklace = Inventory.find(x -> Items.necklaceOfPassage().contains(x.getDefinition().getName())).length != 0 ? true : Banking.withdrawByNames(1, Items.necklaceOfPassage());
+			
+			if(hasRed && hasYellow && hasBlack && hasWhite && hasNecklace) {
+				return true;
+			}
+		}
+		
+		
+		return false;
+	}
 	
 	public static boolean convertCoinsToPlat() {
 		

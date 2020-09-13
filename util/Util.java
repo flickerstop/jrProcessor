@@ -183,8 +183,12 @@ public class Util{
 	}
 	
 	public static void waitTillMovingStops() {
-		while(Player.isMoving()) {
-			randomSleep();
+		long waitTill = Util.secondsLater(20);
+		while(Util.time() < waitTill) {
+		    Util.randomSleepRange(200,1000);
+		    if(!Player.isMoving()) {
+		    	break;
+		    }
 		}
 	}
 	

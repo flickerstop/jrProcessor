@@ -21,10 +21,6 @@ public class BreakManager {
 		
 		Util.log("buildBreakSchedule(): Converting schedule");
 		
-		Util.log("-------------------------");
-		Util.log(networkSchedule);
-		Util.log("-------------------------");
-		
 		
 		for(String day : networkSchedule.split("\\],\\[")) {
 			LinkedList<Integer> dayArray = new LinkedList<Integer>();

@@ -360,4 +360,78 @@ public class NPCTalk {
 		return true;
 
 	}
+	
+	public static boolean mizgog() {
+
+		Util.log("mizgog(): Looking for NPC");
+		// Find the npc
+		RSNPC npc =  NPCs.find("Wizard Mizgog").length != 0 ? NPCs.find("Wizard Mizgog")[0] : null;
+		
+		Network.updateSubTask("Looking for Wizard Mizgog");
+		// Check for null
+		if(npc == null) {
+			Util.log("mizgog(): Unable to find NPC");
+			return false;
+		}
+		
+		long waitTill = Util.secondsLater(15);
+		while(Util.time() < waitTill) {
+			npc.click("Talk-to Wizard Mizgog");
+			Util.randomSleepRange(4000,7000);
+		    
+		    if(NPCChat.getName() != null && (NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName()) || NPCChat.getName().equalsIgnoreCase("Wizard Mizgog"))) {
+		    	break;
+		    }
+		}
+		
+		if(!NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName()) && !NPCChat.getName().equalsIgnoreCase("Wizard Mizgog")) {
+			Util.log("mizgog(): Unable to talk to NPC");
+			return false;
+	    }
+		
+		
+		boolean firstDone = false;
+		Network.updateSubTask("Talking to Wizard Mizgog");
+		waitTill = Util.secondsLater(60*3);
+		while(Util.time() < waitTill) {
+			// If this chat has options and the first isn't done
+			if(NPCChat.getOptions() != null) {
+				Util.log("mizgog(): Chat has options (first selection menu)");
+				// Loop through the chat options
+				for(String option : NPCChat.getOptions()) {
+					// If this option matches what we need
+					if(option.equalsIgnoreCase("Give me a quest please.")) {
+						Util.log("mizgog(): Correct option found");
+						if(NPCChat.selectOption("Give me a quest please.", true)) {
+							Util.log("mizgog(): Clicked correct option");
+							firstDone = true;
+							Network.updateSubTask("First option done");
+							continue;
+						}else {
+							Util.log("mizgog(): Unable to click option");
+							return false;
+						}
+					}
+				}
+			}
+			
+			Util.log("mizgog(): Clicking continue...");
+			NPCChat.clickContinue(true);
+
+			
+			Util.randomSleep();
+			if(NPCChat.getOptions() == null && NPCChat.getName() == null) {
+				Util.log("mizgog(): Chat done");
+				break;
+			}
+		}
+		
+		if(firstDone) {
+			Util.log("mizgog(): Both options were selected");
+			return true;
+		}else {
+			Util.log("mizgog(): Error selecting option");
+			return false;
+		}
+	}
 }

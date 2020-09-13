@@ -34,18 +34,8 @@ public class Teleport {
 			return false;
 	    }
 		
-		ArrayList<String> items = new ArrayList<String>();
-		items.add("Games necklace(8)");
-		items.add("Games necklace(7)");
-		items.add("Games necklace(6)");
-		items.add("Games necklace(5)");
-		items.add("Games necklace(4)");
-		items.add("Games necklace(3)");
-		items.add("Games necklace(2)");
-		items.add("Games necklace(1)");
 		
-		
-		for(String item : items) {
+		for(String item : Items.gamesNecky()) {
 			Util.log("burthorpe(): Looking for "+item);
 			// Check if the item is in the inventory
 			if(Equipment.find(item).length != 0) {
@@ -127,16 +117,8 @@ public class Teleport {
 			return false;
 	    }
 		
-		ArrayList<String> items = new ArrayList<String>();
-		items.add("Ring of wealth (5)");
-		items.add("Ring of wealth (4)");
-		items.add("Ring of wealth (3)");
-		items.add("Ring of wealth (2)");
-		items.add("Ring of wealth (1)");
-
 		
-		
-		for(String item : items) {
+		for(String item : Items.ringOfWealth()) {
 			Util.log("grandExchange(): Looking for "+item);
 			// Check if the item is in the inventory
 			if(Equipment.find(item).length != 0) {
@@ -162,4 +144,52 @@ public class Teleport {
 		return false;
 	}
 
+	public static boolean wizardTower() {
+		
+		if(Player.getPosition().distanceTo(new RSTile(3112, 3177, 0)) < 20) {
+	    	Util.log("wizardTower(): Already in Wizard Tower");
+	    	return true;
+	    }
+		
+		Util.log("wizardTower(): switch to equipment Tab");
+		
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+			GameTab.open(GameTab.TABS.EQUIPMENT);
+		    Util.randomSleep(true);
+		    if(GameTab.getOpen() == GameTab.TABS.EQUIPMENT) {
+		    	break;
+		    }
+		}
+		
+		if(GameTab.getOpen() != GameTab.TABS.EQUIPMENT) {
+			Util.log("wizardTower(): Unable to switch to equipment Tab");
+			return false;
+	    }
+		
+		for(String item : Items.necklaceOfPassage()) {
+			Util.log("wizardTower(): Looking for "+item);
+			// Check if the item is in the inventory
+			if(Equipment.find(item).length != 0) {
+				Network.updateSubTask("Using "+item);
+				Equipment.find(item)[0].click("Wizards' Tower "+item);
+				break;
+			}
+		}
+		
+		Util.log("wizardTower(): Checking if within 20 tiles of teleport spot");
+		waitTill = Util.secondsLater(15);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(Player.getPosition().distanceTo(new RSTile(3112, 3177, 0)) < 20) {
+		    	Util.log("wizardTower(): Teleported");
+		    	return true;
+		    }
+		}
+		
+		
+		
+		Util.log("wizardTower(): Error Teleporting");
+		return false;
+	}
 }

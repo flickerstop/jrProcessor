@@ -31,6 +31,7 @@ import scripts.util.GE;
 import scripts.util.Inven;
 import scripts.util.NPCTalk;
 import scripts.util.Network;
+import scripts.util.PredefinedStateOrders;
 import scripts.util.ServerInfo;
 import scripts.util.Teleport;
 import scripts.util.Trade;
@@ -114,11 +115,11 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			Util.log("run(): logging in");
 			if(!Login.login()) {
 				if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.BANNED) {
-					isRunning = false;
+					killBot();
 					return;
 				}
 				if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.MEM_WORLD) {
-					isRunning = false;
+					killBot();
 					return;
 				}
 			}
@@ -149,7 +150,6 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 		Network.init("jrProcessor");
 		
 		BreakManager.buildBreakSchedule();
-		BreakManager.outputSchedule();
 		//Util.log(BreakManager.getCurrentTask());
 		
 		// Find where to start
@@ -157,15 +157,13 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			currentObjective = 1;
 			Util.log("run(): Selected QUESTING state order");
 			Camera.setCamera(0,100);
-			stateOrder.addAll(Arrays.asList(1001,51,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000,52));
+			stateOrder = PredefinedStateOrders.setQuestingStart();
 			
 			
-//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
-//			Util.log("run(): Selected LEVEL COOKING state order");
-//			// TODO here
-//			// 1002,10,17,11,1,3,6,270,6,2,10,14,11,131,900,200
-//			stateOrder.addAll(Arrays.asList(201,14,202,11,203));
-//			Util.log("run(): Selected PROCESSING state order");
+		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
+			Util.log("run(): Selected LEVEL COOKING state order");
+			stateOrder = PredefinedStateOrders.startLevelingCooking();
+			Util.log("run(): Selected PROCESSING state order");
 			
 			
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
@@ -192,15 +190,14 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			// Check if any membership is left
 			if(!isBreaking && Util.getMembershipLeft().equalsIgnoreCase("none")) {
 				Util.log("No membership left");
-				Login.logout();
-				isRunning = false;
+				killBot();
 				return;
 			}
 			
 			//////////////////////////////////////////////////////////////////////////////////////////////
 			
 			//Util.log("Break Manager Task: "+BreakManager.getCurrentTask());
-			BreakManager.outputSchedule();
+			//BreakManager.outputSchedule();
 			
 			switch(BreakManager.getCurrentTask()) {
 			case 0: // Sleeping
@@ -618,13 +615,8 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 				if(!Login.login()) {
 					if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.BANNED) {
-						isRunning = false;
+						killBot();
 						Util.log("ACCOUNT BANNED!");
-						try {
-							Network.announceCrash();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
 						Network.updateMainTask("ACCOUNT BANNED!");
 						Network.updateSubTask("Weath: +10xp");
 					}
@@ -699,7 +691,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				isBreaking = true;
 				if(!Login.logout()) {
 					Util.log("Unable to log out for breaking.");
-					isRunning = false;
+					killBot();
 					return;
 				}
 				Network.announceBreakStart();
@@ -726,7 +718,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					break;
 				
 				case 1: // Questing
-					stateOrder.addAll(Arrays.asList(1001,51,100,14,101,11,102,131,120,110,121,111,125,122,123,103,131,121,112,125,120,113,130,1000,52));
+					stateOrder = PredefinedStateOrders.setQuestingStart();
 					break;
 					
 				case 2: // Leveling cooking
@@ -738,7 +730,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				}
 				if(!Login.login()) {
 					Util.log("Unable to login for breaking.");
-					isRunning = false;
+					killBot();
 					return;
 				}
 				Network.announceBreakEnd();
@@ -768,7 +760,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 			case 102: // Wear equipment
 				Util.log("run() state 102: Wear equipment");
-				if(!Inven.wearQuestItems()) {
+				if(!Inven.wearHerbQuestItems()) {
 					stateOrder.clear();
 					Util.log("run() state 102: Problem wearing items");
 				}
@@ -782,38 +774,72 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				}
 				break;
 				
+			case 104:
+				if(Bank.checkForImpCatcherItems()) {
+					Util.log("run() state 104: Imp catcher items found");
+					stateOrder = PredefinedStateOrders.setQuestingWithImpCatcher();
+				}else {
+					Util.log("run() state 104: Imp catcher items NOT found");
+				}
+				break;
+				
+			case 105:
+				if(!Bank.withdrawImpCatcherItems()) {
+					killBot();
+					return;
+				}
+				break;
+				
+			case 106: // Wear equipment
+				Util.log("run() state 106: Wear equipment");
+				if(!Inven.wearImpCatcherItems()) {
+					stateOrder.clear();
+					Util.log("run() state 106: Problem wearing items");
+				}
+				break;
+				
 				
 				
 				
 			case 110: // Talk to Kaqemeex (Start quest)
 				Util.log("run() state 110: Talk to Kaqemeex (Start quest)");
 				if(!NPCTalk.kaqemeex1()) {
-					stateOrder.clear();
 					Util.log("run() state 110: Problem talking to kaqemeex");
+					killBot();
 				}
 				break;
 				
 			case 111: // Talk to Sanfew (1st time)
 				Util.log("run() state 111: Talk to Sanfew (1st time)");
 				if(!NPCTalk.sanfew1()) {
-					stateOrder.clear();
 					Util.log("run() state 111: Problem talking to Sanfew");
+					killBot();
 				}
 				break;
 				
 			case 112: // Talk to Sanfew (2nd time)
 				Util.log("run() state 112: Talk to Sanfew (2nd time)");
 				if(!NPCTalk.sanfew2()) {
-					stateOrder.clear();
 					Util.log("run() state 112: Problem talking to Sanfew");
+					killBot();
 				}
 				break;
 				
 			case 113: // Talk to Kaqemeex (End Quest)
 				Util.log("run() state 113: Talk to Kaqemeex (End Quest)");
 				if(!NPCTalk.kaqemeex2()) {
-					stateOrder.clear();
-					Util.log("run() state 110: Problem talking to kaqemeex");
+					Util.log("run() state 113: Problem talking to kaqemeex");
+					killBot();
+				}
+				break;
+				
+			case 114: // Talk to Wizard Mizgog
+				Util.log("run() state 114: Talk to Wizard Mizgog");
+				if(!NPCTalk.mizgog()) {
+					Util.log("run() state 114: Problem talking to Wizard Mizgog");
+					killBot();
+				}else {
+					Util.waitForInterface(277, 2);
 				}
 				break;
 				
@@ -878,6 +904,55 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				}
 				break;
 				
+			case 126:
+				Util.log("run() state 126: Walk to wizard Mizgog");
+				
+				// Walk to the outside of door 1
+				if(!Walk.miniMapWalk(3109, 3167, 0)) {
+					Util.log("run() state 126: Unable to walk to bottom of stairs");
+					killBot();
+				}
+				
+				Util.waitTillMovingStops();
+				Walk.checkForDoor();
+				Util.randomSleep();
+				
+				// Walk to the outside of door 2
+				if(!Walk.miniMapWalk(3107, 3163, 0)) {
+					Util.log("run() state 126: Unable to walk to bottom of stairs");
+					killBot();
+				}
+				
+				Util.waitTillMovingStops();
+				Walk.checkForDoor();
+				Util.randomSleep();
+				
+				// Bottom of stairs
+				if(!Walk.miniMapWalk(3105, 3160, 0)) {
+					Util.log("run() state 126: Unable to walk to bottom of stairs");
+					killBot();
+				}
+				
+				Util.waitTillMovingStops();
+				
+				// Climb up stairs
+				if(!Walk.climbUpStairs()) {
+					Util.log("run() state 126: Unable to climb to middle floor");
+					killBot();
+				}
+				// Climb up stairs
+				if(!Walk.climbUpStairs()) {
+					Util.log("run() state 126: Unable to climb to top floor");
+					killBot();
+				}
+				// Walk to wizard
+				if(!Walk.miniMapWalk(3104, 3163, 2)) {
+					Util.log("run() state 126: Unable to walk to wizard");
+					killBot();
+				}
+				break;
+				
+				
 				
 				
 				
@@ -885,7 +960,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				Util.log("run() state 130:  Teleport to GE");
 				if(!Teleport.grandExchange()) {
 					Util.log("run() state 130: Failed teleporting");
-					stateOrder.clear();
+					killBot();
 				}
 				break;
 				
@@ -893,7 +968,15 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				Util.log("run() state 131: Teleport to burthorpe");
 				if(!Teleport.burthorpe()) {
 					Util.log("run() state 131: Failed teleporting");
-					stateOrder.clear();
+					killBot();
+				}
+				break;
+				
+			case 132:
+				Util.log("run() state 132: Teleport to Wizards Tower");
+				if(!Teleport.wizardTower()) {
+					Util.log("run() state 132: Failed teleporting");
+					killBot();
 				}
 				break;
 				
@@ -1040,6 +1123,11 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 				
 			////////////////////////////////////////////////////////////////
+				
+				
+			case 6666:
+				killBot();
+				break;
 			////////////////////////////////////////////////////////////////
 			}
 			// Handle errors
@@ -1056,9 +1144,8 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 			case SQUARE_NOT_FOUND:
 			case NPC_NOT_FOUND:
-				isRunning = false;
 				Util.log("STATUS: Placement error! Stopping bot");
-				Login.logout();
+				killBot();
 				break;
 				
 			case SELL_INVENTORY_ERROR:
@@ -1369,6 +1456,26 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 	public static int getCurrentObjectiveInt() {
 		return currentObjective;
 	}
+
+	private static void killBot() {
+		stateOrder.clear();
+		isRunning = false;
+		Network.announceCrash();
+		Login.logout();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

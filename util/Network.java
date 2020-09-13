@@ -285,12 +285,16 @@ public class Network {
 		}
 	}
 	
-	public static void announceCrash() throws Exception {
+	public static void announceCrash(){
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("name", playerName);
         params.put("server", ServerInfo.getServer());
 
-        post(params,"/crash");
+        try {
+        	post(params,"/crash");
+        } catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static String post(Map<String,Object> params,String postPath) throws Exception {

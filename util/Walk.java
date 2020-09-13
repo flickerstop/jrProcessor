@@ -97,6 +97,10 @@ public class Walk {
 		return Walking.clickTileMM(new RSTile(x,y,z), 1);
 	}
 	
+	public static boolean miniMapWalk(int x, int y, int z) {
+		return Walking.clickTileMM(new RSTile(x,y,z), 1);
+	}
+	
 	public static boolean climbUpStairs() {
 		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
@@ -328,7 +332,45 @@ public class Walk {
 		return true;
 	}
 	
-	
+	public static boolean checkForDoor() {
+		Camera.setCamera(0,100);
+		
+		RSObject door = Objects.findNearest(2, "Door").length > 0 ? Objects.findNearest(5, "Door")[0] : null;
+		Util.log("checkForDoor(): Looking for Door");
+		Network.updateSubTask("Looking for Door");
+		if(door == null) {
+			Util.log("checkForDoor(): Unable to find door");
+			return false;
+		}
+		
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+			door = Objects.findNearest(2, "Door").length > 0 ? Objects.findNearest(5, "Door")[0] : null;
+			// Check if the door has the open option
+			boolean needsOpen = false;
+			for(String action : door.getDefinition().getActions()) {
+				if(action.equalsIgnoreCase("Open")) {
+					needsOpen = true;
+				}
+			}
+			
+			if(!needsOpen) {
+				return false;
+			}
+		
+			// If can be opened, open it
+			door.click("Open Door");
+			
+			
+		    Util.randomSleepRange(500,2000);
+		}
+		
+		
+		
+		
+		
+		return true;
+	}
 	
 	
 	
