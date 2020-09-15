@@ -1,6 +1,16 @@
 package scripts;
 
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Base64;
+
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+
 import org.tribot.api.General;
+import org.tribot.api.util.Screenshots;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.types.RSItem;
@@ -27,8 +37,19 @@ public class test extends Script implements Starting{
 
 	@Override
 	public void run() {
-		Walk.checkForDoor();
+		General.println(1);
+	
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(Screenshots.getScreenshotImage(), "png", output);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		General.println("data:image/png;base64," + DatatypeConverter.printBase64Binary(output.toByteArray()));
 	}
+
+	
 
 }
 	

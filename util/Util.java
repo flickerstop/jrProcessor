@@ -1,12 +1,18 @@
 package scripts.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+
 import org.tribot.api.General;
+import org.tribot.api.util.Screenshots;
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Interfaces;
@@ -31,6 +37,10 @@ public class Util{
 	private static long lastLogSend = Util.time();
 	private static final long TIME_BETWEEN_LOG = 30000L;
 	
+	// For screen shots
+	private static long lastScreenShot = 0L;
+	private static final long SCREEN_SHOT_INTERVAL = 1000L*15L;
+	
 	
 
 	
@@ -38,6 +48,7 @@ public class Util{
 	 * Sleeps for a random number of milliseconds 
 	 */
 	public static void randomSleep() {
+		Util.checkForScreenShot();
 		int chance = ThreadLocalRandom.current().nextInt(0, 101);
 		
 		// 50% chance of a normal sleep
@@ -99,6 +110,7 @@ public class Util{
 			lastPositionUpdate = new Date().getTime() + 30000L;
 		}
 		
+		Util.checkForScreenShot();
 		int sleepTime = ThreadLocalRandom.current().nextInt(min, max+1);
 		General.sleep(sleepTime);
 		
@@ -241,91 +253,6 @@ public class Util{
 		return walkToGESpot();
 	}
 	
-	public static boolean walkMuleToTrade() {
-		// Get the position of the player
-		RSTile currentPosition = Player.getPosition();
-		RSTile allowedTiles[] = {new RSTile(3167,3490, 0)};
-		
-		Camera.setCamera(0,100);
-		
-		// For each of the allowed tiles to stand on
-		for(RSTile tile : allowedTiles) {
-			// If the player is standing on this tile
-			if(currentPosition.getX() == tile.getX() && currentPosition.getY() == tile.getY()) {
-				return true;
-			}
-		}
-		
-		// If not standing on the correct tile, find the closest one and move to it
-		RSTile closestTile = null;
-		int closestTileDistance = Integer.MAX_VALUE;
-		// Find which tile is the closest
-		for(RSTile tile : allowedTiles) {
-			// Get the distance to this tile
-			int distance = Player.getPosition().distanceTo(tile);
-			// If this tile is closer than the current tile, use this one
-			if(distance < closestTileDistance) {
-				closestTileDistance = distance;
-				closestTile = tile;
-			}
-		}
-		
-		// Walk to the closest tile
-		if(Walking.clickTileMM(closestTile, 1) == false) {
-			Util.log("Could not find GE sqaure to move to");
-			return false;
-		}
-			
-		Util.randomSleep();
-		// Wait till we stop moving;
-		Util.waitTillMovingStops();
-		
-		// Loop this until we're in the correct spot(s)
-		return walkToGESpot();
-	}
-	
-	public static boolean walkBotToTrade() {
-		// Get the position of the player
-		RSTile currentPosition = Player.getPosition();
-		RSTile allowedTiles[] = {new RSTile(3167,3489, 0)};
-		
-		Camera.setCamera(0,100);
-		
-		// For each of the allowed tiles to stand on
-		for(RSTile tile : allowedTiles) {
-			// If the player is standing on this tile
-			if(currentPosition.getX() == tile.getX() && currentPosition.getY() == tile.getY()) {
-				return true;
-			}
-		}
-		
-		// If not standing on the correct tile, find the closest one and move to it
-		RSTile closestTile = null;
-		int closestTileDistance = Integer.MAX_VALUE;
-		// Find which tile is the closest
-		for(RSTile tile : allowedTiles) {
-			// Get the distance to this tile
-			int distance = Player.getPosition().distanceTo(tile);
-			// If this tile is closer than the current tile, use this one
-			if(distance < closestTileDistance) {
-				closestTileDistance = distance;
-				closestTile = tile;
-			}
-		}
-		
-		// Walk to the closest tile
-		if(Walking.clickTileMM(closestTile, 1) == false) {
-			Util.log("Could not find GE sqaure to move to");
-			return false;
-		}
-			
-		Util.randomSleep();
-		// Wait till we stop moving;
-		Util.waitTillMovingStops();
-		
-		// Loop this until we're in the correct spot(s)
-		return walkToGESpot();
-	}
 	
 	public static void setMule() {
 		isMule = true;
@@ -379,5 +306,28 @@ public class Util{
 		newList.addAll(oldList);
 		
 		return newList;
+	}
+	
+	public static void checkForScreenShot() {
+		// Check if we need to take another screenshot
+		if(Util.time() >= lastScreenShot + SCREEN_SHOT_INTERVAL) {
+			lastScreenShot = Util.time();
+			Util.log("run(): Updating screen shot");
+			
+			new Thread(() -> {
+				Network.updateScreenShot();
+			}).start();
+		}
+	}
+	
+	public static String takeScreenShot() {	
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(Screenshots.getScreenshotImage(), "png", output);
+		} catch (IOException e) {
+			Util.log("takeScreenShot(): Error taking screen shot");
+			return null;
+		}
+		return "data:image/png;base64," + DatatypeConverter.printBase64Binary(output.toByteArray());
 	}
 }

@@ -374,17 +374,7 @@ public class Bank {
 		
 		// Check if the inventory is empty already
 		if(Inventory.getAll().length == 0) {
-			long waitTill = Util.secondsLater(2);
-			while(Util.time() < waitTill) {
-			    Util.randomSleep();
-			    if(Inventory.getAll().length != 0) {
-			    	break;
-			    }
-			}
-			// Inventory is empty
-			if(Inventory.getAll().length == 0) {
-				return true;
-		    }
+			return true;
 		}
 		
 		

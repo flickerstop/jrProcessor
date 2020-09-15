@@ -51,7 +51,6 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 	private static boolean isBreaking = false;
 	private static boolean isTradingMule = false;
 	
-	
 	private static final int MIN_OFFSET = 10;
 	private static int offset = MIN_OFFSET;
 	
@@ -150,6 +149,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 		Network.init("jrProcessor");
 		
 		BreakManager.buildBreakSchedule();
+		BreakManager.outputSchedule();
 		//Util.log(BreakManager.getCurrentTask());
 		
 		// Find where to start
@@ -160,10 +160,10 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			stateOrder = PredefinedStateOrders.setQuestingStart();
 			
 			
-		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
-			Util.log("run(): Selected LEVEL COOKING state order");
-			stateOrder = PredefinedStateOrders.startLevelingCooking();
-			Util.log("run(): Selected PROCESSING state order");
+//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
+//			Util.log("run(): Selected LEVEL COOKING state order");
+//			stateOrder = PredefinedStateOrders.startLevelingCooking();
+//			Util.log("run(): Selected PROCESSING state order");
 			
 			
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
@@ -272,6 +272,14 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				e.printStackTrace();
 			}
 			
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			// Check for screenshot
+			Util.checkForScreenShot();
+			
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////////////////////
 			switch(currentState) {
 			////////////////////////////////////////////////////////////////
 			case 1: // Open GE
@@ -619,6 +627,8 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 						Util.log("ACCOUNT BANNED!");
 						Network.updateMainTask("ACCOUNT BANNED!");
 						Network.updateSubTask("Weath: +10xp");
+					}else if(Login.getLoginMessage() == Login.LOGIN_MESSAGE.ERROR_CONNECTING) {
+						stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(50,31));
 					}
 				}
 				
@@ -1367,6 +1377,29 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			return "Doing nothing while staying logged in";
 			
 			
+		case 40:
+			return "Walking to mule spot";
+		case 41:
+			return "Waiting for mule to trade";
+		case 42:
+			return "Trading with mule";
+		case 43:
+			return "Taking plat tokens out of bank";
+			
+		case 50:
+			return "Breaking for 5-20 minutes";
+		case 51:
+			return "Marking as doing work";
+		case 52:
+			return "Making as NOT doing work";
+		case 53:
+			return "Preparing for break";
+		case 54:
+			return "Checking if break continues";
+		case 55:
+			return "Coming off break";
+			
+			
 		case 100: 
 			return "Open bank booth in lumby castle";
 		case 101:
@@ -1375,6 +1408,13 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			return "Wear quest equipment";
 		case 103:
 			return "Use items on cauldron";
+		case 104: 
+			return "Checking for imp catcher items";
+		case 105: 
+			return "Taking out imp catcher items";
+		case 106: 
+			return "Wearing items for imp catcher";
+			
 			
 			
 		case 110:
@@ -1385,6 +1425,8 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			return "Talk to Sanfew (2nd time)";
 		case 113:
 			return "Talk to Kaqemeex (End Quest)";
+		case 114:
+			return "Talk to Wizard Mizgog";
 			
 			
 		case 120:
@@ -1399,12 +1441,17 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			return "Enter Gate";
 		case 125:
 			return "Leave Sanfew House";
+		case 126:
+			return "Walk to Wizard Mizgog";
 			
 			
 		case 130:
 			return "Teleport to GE";
 		case 131:
 			return "Teleport to burthorpe";
+		case 132:
+			return "Teleport to Wizard Tower";
+			
 			
 		case 200:
 			return "Walking to Rogues Den";

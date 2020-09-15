@@ -38,6 +38,11 @@ public class BreakManager {
 		
 		Util.log("buildBreakSchedule(): Schedule Built");
 		
+		int dayOfTheWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)-1;
+		int hourOfTheDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+		Util.log("Current Day:" + dayOfTheWeek);
+		Util.log("Current Hour:" + hourOfTheDay);
+		
 		return true;
 	}
 	

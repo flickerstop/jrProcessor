@@ -2,7 +2,9 @@ package scripts;
 
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.Login;
+import org.tribot.api2007.Player;
 import org.tribot.api2007.WorldHopper;
+import org.tribot.api2007.types.RSTile;
 import org.tribot.script.Script;
 import org.tribot.script.ScriptManifest;
 import org.tribot.script.interfaces.Breaking;
@@ -13,6 +15,7 @@ import org.tribot.script.interfaces.Starting;
 import scripts.util.Network;
 import scripts.util.Trade;
 import scripts.util.Util;
+import scripts.util.Walk;
 
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrMule")
 public class JrMule extends Script implements Starting, Ending {
@@ -88,6 +91,12 @@ public class JrMule extends Script implements Starting, Ending {
 				Util.log("Failed to login");
 				isSleep = true;
 				continue;
+			}
+			
+			// Check if we're far within the GE
+			if(Player.getPosition().distanceTo(new RSTile(3167,3488,0)) > 10) {
+				Walk.walkToPosition(3167,3488,0);
+				Util.waitTillMovingStops();
 			}
 			
 			
