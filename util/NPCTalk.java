@@ -1,6 +1,8 @@
 package scripts.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Game;
@@ -28,7 +30,7 @@ public class NPCTalk {
 			return false;
 		}
 		
-		long waitTill = Util.secondsLater(15);
+		long waitTill = Util.secondsLater(60);
 		while(Util.time() < waitTill) {
 			npc.click("Talk-to Kaqemeex");
 			Util.randomSleepRange(4000,7000);
@@ -44,71 +46,45 @@ public class NPCTalk {
 	    }
 		
 		
-		boolean firstDone = false;
-		boolean secondDone = false;
 		Network.updateSubTask("Talking to kaqemeex");
+		
 		waitTill = Util.secondsLater(60*3);
 		while(Util.time() < waitTill) {
-			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null) {
-				Util.log("kaqemeex1(): Chat has options (first selection menu)");
-				// Loop through the chat options
-				for(String option : NPCChat.getOptions()) {
-					// If this option matches what we need
-					if(option.equalsIgnoreCase("I'm in search of a quest.")) {
-						Util.log("kaqemeex1(): Correct option found");
-						if(NPCChat.selectOption("I'm in search of a quest.", true)) {
-							Util.log("kaqemeex1(): Clicked correct option");
-							firstDone = true;
-							Network.updateSubTask("First option done");
-							continue;
-						}else {
-							Util.log("kaqemeex1(): Unable to click option");
-							return false;
-						}
-					}
-				}
-			}
-			
-			// If this chat has options and the first isn't done
-			if(NPCChat.getOptions() != null) {
-				Util.log("kaqemeex1(): Chat has options (second selection menu)");
-				// Loop through the chat options
-				for(String option : NPCChat.getOptions()) {
-					// If this option matches what we need
-					if(option.equalsIgnoreCase("Okay, I will try and help.")) {
-						Util.log("kaqemeex1(): Correct option found");
-						if(NPCChat.selectOption("Okay, I will try and help.", true)) {
-							Util.log("kaqemeex1(): Clicked correct option");
-							Network.updateSubTask("Second Option done");
-							secondDone = true;
-							continue;
-						}else {
-							Util.log("kaqemeex1(): Unable to click option");
-							return false;
-						}
-					}
-				}
-			}
-			
-			Util.log("kaqemeex1(): Clicking continue...");
-			NPCChat.clickContinue(true);
 
+			// Get the chat options
+			List<String> chatOptions = NPCChat.getOptions() != null ? Arrays.asList(NPCChat.getOptions()) : Arrays.asList(new String[0]);
 			
-			Util.randomSleep();
-			if(NPCChat.getOptions() == null && NPCChat.getName() == null) {
+			// If the chat options contains the first
+			if(chatOptions.contains("I'm in search of a quest.")) {
+				Util.log("kaqemeex1(): Option 1");
+				NPCChat.selectOption("I'm in search of a quest.", true);
+			}else if(chatOptions.contains("I'm in search of a quest")) {
+				Util.log("kaqemeex1(): Option 1");
+				NPCChat.selectOption("I'm in search of a quest", true);
+			}
+			// Second Options
+			else if(chatOptions.contains("Okay, I will try and help.")) {
+				Util.log("kaqemeex1(): Option 2");
+				NPCChat.selectOption("Okay, I will try and help.", true);
+			}
+			else {
+				Util.log("kaqemeex1(): Clicking continue...");
+				NPCChat.clickContinue(true);
+			}
+			
+			
+			
+			
+			Util.randomSleepRange(200,1000);
+			if(NPCChat.getOptions() == null && NPCChat.getName() == null && NPCChat.getMessage() == null) {
 				Util.log("kaqemeex1(): Chat done");
-				break;
+				return true;
 			}
 		}
 		
-		if(firstDone && secondDone) {
-			Util.log("kaqemeex1(): Both options were selected");
-			return true;
-		}else {
-			Util.log("kaqemeex1(): Error selecting option");
-			return false;
-		}
+		return false;
+		
+		
 	}
 	
 	public static boolean kaqemeex2() {

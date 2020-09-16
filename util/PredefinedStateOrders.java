@@ -13,6 +13,7 @@ public class PredefinedStateOrders {
 				51,		// Mark as doing work
 				100,	// Open bank in lumby castle
 				14,		// Deposit all items
+				301,	// Deposit equipment
 				104,	// Look for imp catcher items
 				101,	// Take out herblore quest items
 				11,		// Close the bank

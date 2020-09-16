@@ -466,31 +466,30 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					status = STATUS.BANK_NOT_OPEN;
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 11: // close bank
 				if(!Bank.closeBank()) {
 					Util.log("run(): Unable to close bank");
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 12: // empty bank
 				if(!Bank.emptyBank(false)) {
 					Util.log("run(): Unable to empty bank");
 					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(11,10,14,12));
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 13: // Count herbs
 				Util.log("run(): Counting herbs/vials");
 				Bank.countHerbs();
 				Bank.countVials();
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 14: // Deposit all
 				Util.log("run(): Depositing all items");
 				Bank.depositAll();
 				break;
-			////////////////////////////////////////////////////////////////
 				
 			case 15:
 				boolean hasNoTask = true;
@@ -526,35 +525,40 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 				break;
 				
-			////////////////////////////////////////////////////////////////
 			case 16:
 				if(!Bank.leave1mInBank()) {
 					stateOrder.clear();
 					stateOrder.addAll(Arrays.asList(2,10,14,12,11,1,3,6,4,2,10,16,11,32));
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 17: // empty bank
 				if(!Bank.emptyBank(false)) {
 					Util.log("run(): Unable to empty bank");
 					stateOrder = Util.addToStartOfArray(stateOrder,Arrays.asList(11,10,14,12));
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 18: // empty bank
 				if(!Bank.grabCoins()) {
 					Util.log("run(): Unable to withdraw coins");
 					stateOrder.clear();
 				}
 			break;
-			////////////////////////////////////////////////////////////////
+
 			case 19:
 				if(!Bank.convertCoinsToPlat()) {
 					Util.log("run(): Unable to convert coins to plat");
 				}
 				break;
+				
+			case 301:
+				Banking.depositEquipment();
+				break;
 			
 			
+				
+				
 			////////////////////////////////////////////////////////////////			
 			////////////////////////////////////////////////////////////////
 			case 20: // Check bank for next process
@@ -564,7 +568,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					Util.log("run(): No item to process");
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 21: // Process item in bank
 				if(currentProcess != null) {
 					if(!currentProcess.inBank()) {
@@ -576,7 +580,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 					Util.log("run(): NULL process");
 				}
 				break;
-			////////////////////////////////////////////////////////////////
+
 			case 22: // Process item in inventory
 				
 				if(Banking.isBankScreenOpen()) {
