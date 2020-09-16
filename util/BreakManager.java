@@ -33,7 +33,7 @@ public class BreakManager {
 			}
 			
 			
-			breakSchedule.push(dayArray);
+			breakSchedule.add(dayArray);
 		}
 		
 		Util.log("buildBreakSchedule(): Schedule Built");
