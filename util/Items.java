@@ -44,4 +44,17 @@ public class Items {
 		return newList;
 	}
 	
+	public static LinkedList<String> amuletOfGlory(){
+		LinkedList<String> newList = new LinkedList<String>();
+		newList.addAll(Arrays.asList(
+				"Amulet of glory(6)",
+				"Amulet of glory(5)",
+				"Amulet of glory(4)",
+				"Amulet of glory(3)",
+				"Amulet of glory(2)",
+				"Amulet of glory(1)"));
+		
+		return newList;
+	}
+	
 }

@@ -32,7 +32,7 @@ public class Network {
 	
 	private static long startTime = 0L;
 	
-	public static String version = "v2.08";
+	public static String version = "v2.09";
 	
 	
 	public static String[] getNextItem() {
@@ -311,6 +311,10 @@ public class Network {
 	}
 	
 	private static String post(Map<String,Object> params,String postPath) throws Exception {
+		
+		if(!isInit) {
+			return "not init";
+		}
 		
 		URL url = new URL (urlStart+"/post/bot"+postPath);
 		

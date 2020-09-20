@@ -160,10 +160,10 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 			stateOrder = PredefinedStateOrders.setQuestingStart();
 			
 			
-//		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
-//			Util.log("run(): Selected LEVEL COOKING state order");
-//			stateOrder = PredefinedStateOrders.startLevelingCooking();
-//			Util.log("run(): Selected PROCESSING state order");
+		}else if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) < 68) {
+			Util.log("run(): Selected LEVEL COOKING state order");
+			stateOrder = PredefinedStateOrders.startLevelingCooking();
+			Util.log("run(): Selected PROCESSING state order");
 			
 			
 		}else if(Skills.getCurrentLevel(Skills.SKILLS.HERBLORE) >= 3) {
@@ -757,7 +757,7 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 			case 100: // Open bank booth in lumby castle
 				Util.log("run() state 100: Open bank booth in lumby castle");
-				if(!Bank.openLumbyBank()) {
+				if(!Bank.bankBooth()) {
 					stateOrder.clear();
 					Util.log("run() state 100: Problem opening bank");
 				}
@@ -1040,6 +1040,9 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				}
 				break;
 				
+				
+			////////////////////////////////////////////////////////////////
+				
 			case 210:
 				break;
 				
@@ -1051,6 +1054,9 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				
 			case 213:
 				break;
+				
+				
+			////////////////////////////////////////////////////////////////
 				
 			case 270:
 				Util.log("run(): Buying fish for cooking");
@@ -1070,30 +1076,58 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
                 	break;
                 }
                 
-                Util.log("run(): Attempting to buy raw anchovies");
-                if(!GE.openBuyOffer("Raw anchovies", 0, 300)) {
-                	Util.log("run(): Unable to buy raw anchovies");
-                	stateOrder.clear();
-                	break;
+                // Check if we have raw anchovies, if we do then check if we have under 300
+                if(Inventory.find("Raw anchovies").length > 0 ? Inventory.find("Raw anchovies")[0].getStack() < 300 : true) {
+                	// Calculate how many to buy
+                	int tempAmountToBuy = Inventory.find("Raw anchovies").length > 0 ? 300 - Inventory.find("Raw anchovies")[0].getStack() : 300;
+                	Util.log("run(): Attempting to buy raw anchovies");
+                    if(!GE.openBuyOffer("Raw anchovies", 0, tempAmountToBuy)) {
+                    	Util.log("run(): Unable to buy raw anchovies");
+                    }
                 }
                 
-                Util.log("run(): Attempting to buy raw trout");
-                if(!GE.openBuyOffer("Raw trout", 0, 400)) {
-                	Util.log("run(): Unable to buy raw trout");
-                	stateOrder.clear();
-                	break;
+                // Check if we have Raw trout, if we do then check if we have under 400
+                if(Inventory.find("Raw trout").length > 0 ? Inventory.find("Raw trout")[0].getStack() < 400 : true) {
+                	// Calculate how many to buy
+                	int tempAmountToBuy = Inventory.find("Raw trout").length > 0 ? 400 - Inventory.find("Raw trout")[0].getStack() : 400;
+                	Util.log("run(): Attempting to buy raw trout");
+                    if(!GE.openBuyOffer("Raw trout", 250, tempAmountToBuy)) {
+                    	Util.log("run(): Unable to buy raw trout");
+                    }
                 }
                 
-                Util.log("run(): Attempting to buy raw tuna");
-                if(!GE.openBuyOffer("Raw tuna", 0, 8000)) {
-                	Util.log("run(): Unable to buy raw tuna");
-                	stateOrder.clear();
-                	break;
+                // Check if we have Raw tuna, if we do then check if we have under 8000
+                if(Inventory.find("Raw tuna").length > 0 ? Inventory.find("Raw tuna")[0].getStack() < 8000 : true) {
+                	// Calculate how many to buy
+                	int tempAmountToBuy = Inventory.find("Raw tuna").length > 0 ? 8000 - Inventory.find("Raw tuna")[0].getStack() : 8000;
+                	Util.log("run(): Attempting to buy raw tuna");
+                    if(!GE.openBuyOffer("Raw tuna", 0, tempAmountToBuy)) {
+                    	Util.log("run(): Unable to buy raw tuna");
+                    }
                 }
                 
 				break;
 							
-							
+			case 271:
+				break;
+				
+			case 272:
+				// check if we have enough fish in the bank
+				if(Banking.find("Raw anchovies").length > 0 ? Banking.find("Raw anchovies")[0].getStack() < 300 : true) {
+					stateOrder = Util.addToStartOfArray(stateOrder, PredefinedStateOrders.buyFishForCooking());
+				}
+				if(Banking.find("Raw trout").length > 0 ? Inventory.find("Raw trout")[0].getStack() < 400 : true) {
+					stateOrder = Util.addToStartOfArray(stateOrder, PredefinedStateOrders.buyFishForCooking());
+				}
+				if(Banking.find("Raw tuna").length > 0 ? Inventory.find("Raw tuna")[0].getStack() < 8000 : true) {
+					stateOrder = Util.addToStartOfArray(stateOrder, PredefinedStateOrders.buyFishForCooking());
+				}
+				
+				break;
+				
+			case 273:
+				Bank.withdrawAllFish();
+				break;
 							
 							
 							

@@ -331,7 +331,7 @@ public class GE {
 				}
 			}
 			
-		}else if(buyPrice > (GrandExchange.getGuidePrice()*2) && !itemName.equalsIgnoreCase("Vial of water")){
+		}else if(buyPrice > (GrandExchange.getGuidePrice()*2) && !itemName.equalsIgnoreCase("Vial of water") && !itemName.equalsIgnoreCase("Raw trout")){
 			Util.log("openBuyOffer(): Attempting to buy item for double guide price!");
 			Util.log("openBuyOffer(): Guide: "+GrandExchange.getGuidePrice());
 			Util.log("openBuyOffer(): Buy offer: "+buyPrice);

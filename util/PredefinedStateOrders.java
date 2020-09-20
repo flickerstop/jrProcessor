@@ -76,25 +76,36 @@ public class PredefinedStateOrders {
 	}
 	
 	public static LinkedList<Integer> startLevelingCooking() {
+		LinkedList<Integer> newList = buyFishForCooking();
+		newList.addAll(Arrays.asList(
+				11,		// Close the bank
+				131,	// Teleport to burthrope
+				900,	// Make sure rooftops are off
+				200		// Walk to rogues den
+			));
+		
+		return newList;
+	}
+	
+	public static LinkedList<Integer> buyFishForCooking() {
 		LinkedList<Integer> newList = new LinkedList<Integer>();
 		newList.addAll(Arrays.asList(
 				1002,	// Set objective as leveling cooking
 				51,		// Mark as doing work
 				10,		// Open the bank
-				12,		// Empty bank
+				14,		// Deposit items
+				273,	// Take out fish
+				18,		// Take out coins
 				11,		// Close bank
 				1,		// Open GE
-				3,		// Sell inventory
-				6,		// Wait and collect items
+				4,		// Cancel all offers
+				6,		// Collect all offers
 				270,	// Buy fish for leveling up
 				6,		// Wait and collect fish
 				2,		// Close GE
 				10,		// Open bank
 				14,		// Deposit all items
-				11,		// Close the bank
-				131,	// Teleport to burthrope
-				900,	// Make sure rooftops are off
-				200		// Walk to rogues den
+				272		// Make sure we have enough fish in the bank
 			));
 		
 		return newList;

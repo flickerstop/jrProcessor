@@ -98,7 +98,7 @@ public class Util{
 		}
 		
 		// Update the position
-		if(new Date().getTime() >= lastPositionUpdate && !isMule) {
+		if(new Date().getTime() >= lastPositionUpdate && !isMule && Network.isInit) {
 			// Update the position
 			try {
 				Network.updatePosition();
@@ -310,7 +310,7 @@ public class Util{
 	
 	public static void checkForScreenShot() {
 		// Check if we need to take another screenshot
-		if(Util.time() >= lastScreenShot + SCREEN_SHOT_INTERVAL) {
+		if(Util.time() >= lastScreenShot + SCREEN_SHOT_INTERVAL && Network.isInit) {
 			lastScreenShot = Util.time();
 			Util.log("run(): Updating screen shot");
 			

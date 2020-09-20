@@ -6,6 +6,7 @@ import org.tribot.api.General;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
 import org.tribot.api2007.Equipment;
+import org.tribot.api2007.Game;
 import org.tribot.api2007.GameTab;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Objects;
@@ -101,6 +102,36 @@ public class Walk {
 		return Walking.clickTileMM(new RSTile(x,y,z), 1);
 	}
 	
+	public static boolean humanSmallWalk(int x, int y, int z) {
+		
+		if(Player.getPosition().equals(new RSTile(x,y,z))) {
+			return true;
+		}
+		
+		if(new RSTile(x,y,z).isOnScreen()) {
+			if(!new RSTile(x,y,z).click("Walk here")) {
+				miniMapWalk(x,y,z);
+			}
+		}else {
+			miniMapWalk(x,y,z);
+		}
+		Util.randomSleep(true);
+		long waitTill = Util.secondsLater(60);
+		while(Util.time() < waitTill) {
+		    Util.randomSleepRange(50,100);
+		    if(Game.getDestination() == null) {
+		    	Util.waitTillMovingStops();
+		    	break;
+		    }
+		}
+		
+	    if(Player.getPosition().equals(new RSTile(x,y,z))) {
+	    	return false;
+	    }
+		
+		return true;
+	}
+
 	public static boolean climbUpStairs() {
 		Camera.setCamera(0,100);
 		RSTile startingPos = Player.getPosition();
@@ -372,26 +403,33 @@ public class Walk {
 		return true;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	public static boolean crossGangplank() {
+		Camera.setCamera(0,100);
+		RSTile startingPos = Player.getPosition();
+		
+		RSObject gangPlank = Objects.findNearest(5, "Gangplank").length > 0 ? Objects.findNearest(5, "Gangplank")[0] : null;
+		Util.log("gangPlank(): Attempting to cross gangplank");
+		Network.updateSubTask("Looking for gangplank");
+		if(gangPlank == null) {
+			Util.log("gangPlank(): Unable to find gangplank");
+			return false;
+		}
+		
+		if(!gangPlank.click("Cross Gangplank")) {
+			Util.log("gangPlank(): Failed clicking gangPlank");
+			return false;
+		}
+		
+		Network.updateSubTask("Gangplank Clicked");
+		long waitTill = Util.secondsLater(30);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(Player.getPosition().distanceTo(startingPos) > 10 || startingPos.getPlane() != Player.getPosition().getPlane()) {
+		    	break;
+		    }
+		}
+		
+		Util.log("gangPlank(): Crossed gangplank");
+		return true;
+	}
 }

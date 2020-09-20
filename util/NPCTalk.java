@@ -12,6 +12,7 @@ import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.types.RSNPC;
+import org.tribot.api2007.types.RSTile;
 
 import scripts.JrProcessor;
 
@@ -410,4 +411,103 @@ public class NPCTalk {
 			return false;
 		}
 	}
+
+	
+	public static boolean veos() {
+		Util.log("veos(): Looking for NPC");
+		// Find the npc
+		RSNPC npc =  NPCs.find("Veos").length != 0 ? NPCs.find("Veos")[0] : null;
+		boolean fastTravel = false;
+		
+		Network.updateSubTask("Looking for Veos");
+		// Check for null
+		if(npc == null) {
+			Util.log("veos(): Unable to find NPC");
+			return false;
+		}
+		
+		// Check if Veos has the option for land's end
+		for(String option : npc.getActions()) {
+			if(option.equalsIgnoreCase("Port Piscarilius")) {
+				fastTravel = true;
+			}
+		}
+		
+		if(fastTravel) {
+			if(!npc.click("Port Piscarilius Veos")) {
+				Util.log("veos(): Failed fast Travel");
+				return false;
+			}else {
+				// Wait till we're on the ship
+				long waitTill = Util.secondsLater(15);
+				while(Util.time() < waitTill) {
+				    Util.randomSleep();
+				    if(Player.getPosition().distanceTo(new RSTile(1824, 3695, 1)) < 5) {
+				    	Util.randomSleepRange(2000, 4000);
+				    	// We're on the ship, look for the Gangplank
+			    		return Walk.crossGangplank();
+				    }
+				}
+				return false;
+			}
+		}
+		
+//		long waitTill = Util.secondsLater(60);
+//		while(Util.time() < waitTill) {
+//			npc.click("Talk-to Kaqemeex");
+//			Util.randomSleepRange(4000,7000);
+//		    
+//		    if(NPCChat.getName() != null && NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName())) {
+//		    	break;
+//		    }
+//		}
+//		
+//		if(!NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName())) {
+//			Util.log("kaqemeex1(): Unable to talk to NPC");
+//			return false;
+//	    }
+//		
+//		
+//		Network.updateSubTask("Talking to kaqemeex");
+//		
+//		waitTill = Util.secondsLater(60*3);
+//		while(Util.time() < waitTill) {
+//
+//			// Get the chat options
+//			List<String> chatOptions = NPCChat.getOptions() != null ? Arrays.asList(NPCChat.getOptions()) : Arrays.asList(new String[0]);
+//			
+//			// If the chat options contains the first
+//			if(chatOptions.contains("I'm in search of a quest.")) {
+//				Util.log("kaqemeex1(): Option 1");
+//				NPCChat.selectOption("I'm in search of a quest.", true);
+//			}else if(chatOptions.contains("I'm in search of a quest")) {
+//				Util.log("kaqemeex1(): Option 1");
+//				NPCChat.selectOption("I'm in search of a quest", true);
+//			}
+//			// Second Options
+//			else if(chatOptions.contains("Okay, I will try and help.")) {
+//				Util.log("kaqemeex1(): Option 2");
+//				NPCChat.selectOption("Okay, I will try and help.", true);
+//			}
+//			else {
+//				Util.log("kaqemeex1(): Clicking continue...");
+//				NPCChat.clickContinue(true);
+//			}
+//			
+//			
+//			
+//			
+//			Util.randomSleepRange(200,1000);
+//			if(NPCChat.getOptions() == null && NPCChat.getName() == null && NPCChat.getMessage() == null) {
+//				Util.log("kaqemeex1(): Chat done");
+//				return true;
+//			}
+//		}
+		
+		return false;
+	}
+
+
+
+
 }

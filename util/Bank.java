@@ -433,10 +433,10 @@ public class Bank {
 	}
 
 
-	public static boolean openLumbyBank() {
+	public static boolean bankBooth() {
 		
-		Util.log("openLumbyBank(): Searching for bank booth");
-		Network.updateSubTask("Looking for lumby bank");
+		Util.log("bankBooth(): Searching for bank booth");
+		Network.updateSubTask("Looking for bank booth");
 		
 		// Look for the closest bank booth
 		RSObject closestBooth = null;
@@ -455,7 +455,7 @@ public class Bank {
 			return false;
 		}
 		
-		Util.log("openLumbyBank(): Opening Bank");
+		Util.log("bankBooth(): Opening Bank");
 		Network.updateSubTask("Opening bank");
 		
 		// Right click the closest NPC and exchange
@@ -463,7 +463,7 @@ public class Bank {
 			return false;
 		}
 		
-		Util.log("openLumbyBank(): Waiting for bank to be open");
+		Util.log("bankBooth(): Waiting for bank to be open");
 		long waitTill = Util.secondsLater(10);
 		while(Util.time() < waitTill) {
 		    Util.randomSleep();
@@ -767,10 +767,69 @@ public class Bank {
 		return false;
 	}
 	
+	public static void withdrawAllFish() {
+		// Set to notes
+		Mouse.moveBox(173,312,218,329);
+		Util.randomSleep();
+		Mouse.click(1);
+		Util.randomSleep();
+				
+		if(Banking.find("Raw anchovies").length > 0) {
+			Banking.withdraw(0, "Raw anchovies");
+			Util.randomSleep();
+		}
+		if(Banking.find("Raw trout").length > 0) {
+			Banking.withdraw(0, "Raw trout");
+			Util.randomSleep();
+		}
+		if(Banking.find("Raw tuna").length > 0) {
+			Banking.withdraw(0, "Raw tuna");
+			Util.randomSleep();
+		}
+	}
 	
 	
-	
-	
+	public static boolean bankChest() {
+		Util.log("bankChest(): Searching for bank chest");
+		Network.updateSubTask("Looking for a bank chest");
+		
+		// Look for the closest bank booth
+		RSObject closestBankChest = null;
+		int closestChestDistance = Integer.MAX_VALUE;
+		// Loop through all NPCs with the correct name
+		for(RSObject chest : Objects.findNearest(10, "Bank chest")) {
+			int distance = Player.getPosition().distanceTo(chest.getPosition());
+			
+			if(distance < closestChestDistance) {
+				closestChestDistance = distance;
+				closestBankChest = chest;
+			}
+		}
+		
+		if(closestBankChest == null) {
+			return false;
+		}
+		
+		Util.log("bankChest(): Opening Bank");
+		Network.updateSubTask("Opening bank");
+		
+		// Right click the closest NPC and exchange
+		if(!closestBankChest.click("Use Bank chest")) {
+			return false;
+		}
+		
+		Util.log("bankChest(): Waiting for bank to be open");
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    // Make sure the bank is open
+			if(Banking.isBankScreenOpen()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 	
 	
