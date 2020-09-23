@@ -583,6 +583,15 @@ public class Bank {
 	}
 	
 	public static boolean takeOutCookingTrainingFish() {
+		
+		// Check if we're withdrawing X
+		if(Banking.getWithdrawQuantity() != Banking.WITHDRAW_QUANTITY.WITHDRAW_X) {
+			Util.log("openBank(): Withdraw X not set, setting now!");
+			Util.randomSleep();
+			Banking.setWithdrawQuantity(Banking.WITHDRAW_QUANTITY.WITHDRAW_X);
+			Util.randomSleep();
+		}
+				
 		String item = null;
 		int anchovies = Banking.find("Raw anchovies").length != 0 ? Banking.find("Raw anchovies")[0].getStack() : 0;
 		int trout = Banking.find("Raw trout").length != 0 ? Banking.find("Raw trout")[0].getStack() : 0;
@@ -768,6 +777,7 @@ public class Bank {
 	}
 	
 	public static void withdrawAllFish() {
+		
 		// Set to notes
 		Mouse.moveBox(173,312,218,329);
 		Util.randomSleep();

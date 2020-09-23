@@ -37,6 +37,7 @@ import scripts.util.Teleport;
 import scripts.util.Trade;
 import scripts.util.Util;
 import scripts.util.Walk;
+import scripts.util.Zeah;
 
 
 @ScriptManifest(authors = { "JR" }, category = "Tools", name = "jrProcessor")
@@ -994,66 +995,145 @@ public class JrProcessor extends Script implements Starting, Ending, MessageList
 				}
 				break;
 				
+			case 133:
+				Util.log("run() state 133: Teleport to Draynor Village");
+				if(!Teleport.draynor()) {
+					Util.log("run() state 133: Failed teleporting");
+					Util.log("run() state 133: Defaulting to making pots");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
+				break;
+				
 				
 			////////////////////////////////////////////////////////////////
+			
+			//200 walk to veos 
 			case 200:
-				Util.log("run() state 200: Walk to Rogues Den");
-				if(!Walk.walkToPosition(2906, 3537, 0)) {
-					stateOrder.clear();
-					Util.log("run() state 200: Failed to walk to Rogues Den");
-				}else {
-					if(!Walk.enterTrapdoor()) {
-						stateOrder.clear();
-						Util.log("run() state 200: Unable to enter trapdoor");
-					}else {
-						if(!Walk.walkToPosition(3043, 4972, 1)) {
-							stateOrder.clear();
-							Util.log("run() state 200: Failed to walk to Rogues Den fire");
-						}
+				if(!Zeah.walkToVeos()) {
+					Util.log("run() state 200: Failed");
+					stateOrder.addFirst(133);
+					stateOrder.addFirst(200);
+				}
+				break;
+				
+			//201 travel to zeah
+			case 201:
+				if(!Zeah.takeTheBoat()) {
+					Util.log("run() state 201: Failed");
+					stateOrder.addFirst(133);
+					stateOrder.addFirst(200);
+					stateOrder.addFirst(201);
+				}
+				break;
+				
+			//202 docks -> town
+			case 202:
+				if(!Zeah.walkDocksToHosidius()) {
+					Util.log("run() state 202: Failed");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
+				break;
+				
+			//203 town -> ploughs
+			case 200:
+				break;
+				
+			//204 plough the fields
+			case 204:
+				if(!Zeah.plough()) {
+					Util.log("run() state 204: Failed");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
+				break;
+				
+			//205 ploughs -> town
+			case 200:
+				break;
+				
+			//206 town -> bank
+			case 200:
+				break;
+				
+			//207 open bank in town
+			case 207:
+				if(!Bank.bankBooth()) {
+					Util.log("run() state 207: Failed");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
+				break;
+				
+			//208 withdraw fertilizer
+			case 208:
+				Zeah.takeOutCompostAndSalt();
+				break;
+				
+			//209 make fertilizer
+			case 209:
+				Zeah.createFertilizer();
+				break;
+				
+			//210 bank -> town
+			case 200:
+				break;
+				
+			//211 town -> clerk
+			case 211:
+				if(!Zeah.hosidiusToClerk()) {
+					Util.log("run() state 211: Failed");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
+				break;
+				
+			//212 Hand in fertilizer
+			case 212:
+				if(!Zeah.handInFertilizer()) {
+					if(!Zeah.handInFertilizer()) {
+						Util.log("run() state 212: Failed");
+						stateOrder.addFirst(130);
+						stateOrder.addFirst(1000);
 					}
 				}
 				break;
 				
-			case 201:
-				// open bank in rogues
-				if(!Bank.openRoguesDenBank()) {
-					stateOrder.clear();
-					Util.log("run() state 201: Failed to Open rogues den bank");
-				}
-				break;
-				
-			case 202:
-				// use bank in rogues
-				if(!Bank.takeOutCookingTrainingFish()) {
-					stateOrder.clear();
-					Util.log("run() state 202: Failed to Open rogues den bank");
-				}
-				break;
-				
-			case 203:
-				// cook in rogues
-				if(!Cooking.cookFishOnFire()) {
-					stateOrder.clear();
-					Util.log("run() state 202: Failed to Open rogues den bank");
-				}else {
-					stateOrder.addAll(Arrays.asList(201,14,202,11,203));
-				}
-				break;
-				
-				
-			////////////////////////////////////////////////////////////////
-				
-			case 210:
-				break;
-				
-			case 211:
-				break;
-				
-			case 212:
-				break;
-				
+			//213 Clerk -> kitchen
 			case 213:
+				if(!Zeah.clerkToKitchen()) {
+					Util.log("run() state 213: Failed");
+					stateOrder.addFirst(130);
+					stateOrder.addFirst(1000);
+				}
 				break;
+				
+
+			//220 Bank in kitchen
+			case 220:
+				if(!Bank.bankChest()) {
+					Util.log("run() state 220: Failed opening bank chest");
+					killBot();
+				}
+				break;
+				
+			//221 Withdraw fish from bank
+			case 221:
+				if(!Bank.takeOutCookingTrainingFish()) {
+					stateOrder.addFirst(14);
+					stateOrder.addFirst(11);
+					stateOrder.addFirst(220);
+				}
+				break;
+				
+			//223 Cook on clay oven
+			case 223:
+				if(!Cooking.cookFishOnOven()) {
+					//stateOrder.addFirst(220);
+				}
+				break;
+				
 				
 				
 			////////////////////////////////////////////////////////////////
