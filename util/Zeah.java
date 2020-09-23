@@ -11,6 +11,7 @@ import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Player;
 import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSNPC;
+import org.tribot.api2007.types.RSTile;
 
 public class Zeah {
 	
@@ -69,10 +70,83 @@ public class Zeah {
 		Util.randomSleep();
 	}
 	
-	
+	public static boolean handInFertilizer() {
+		
+		
+		return NPCTalk.hosidiusClerk();
+	}
 	
 	public static boolean walkToPlows() {
 		Walk.walkToRandom(1768, 3550, 1775, 3550, 0);
+		return true;
+	}
+	
+	public static boolean walkDocksToHosidius() {
+		
+		RSTile walkPath[] = {
+				new RSTile(1815, 3689, 0),
+				new RSTile(1800, 3689, 0),
+				new RSTile(1786, 3685, 0),
+				new RSTile(1779, 3673, 0),
+				new RSTile(1771, 3664, 0),
+				new RSTile(1771, 3650, 0),
+				new RSTile(1771, 3635, 0),
+				new RSTile(1771, 3629, 0),
+				new RSTile(1769, 3613, 0),
+				new RSTile(1758, 3605, 0),
+				new RSTile(1755, 3598, 0)
+		};
+		
+		Walk.walkHumanPath(walkPath);
+		
+		return true;
+	}
+	
+	public static boolean hosidiusToClerk() {
+		
+		RSTile walkPath[] = {
+				new RSTile(1758, 3585, 0),
+				new RSTile(1758, 3570, 0),
+				new RSTile(1760, 3553, 0),
+				new RSTile(1756, 3540, 0),
+				new RSTile(1744, 3533, 0),
+				new RSTile(1744, 3517, 0),
+				new RSTile(1734, 3508, 0),
+				new RSTile(1721, 3514, 0),
+				new RSTile(1707, 3520, 0),
+				new RSTile(1702, 3529, 0)	
+		};
+		
+		Walk.walkHumanPath(walkPath);
+		
+		return true;
+	}
+	
+	public static boolean clerkToKitchen() {
+		
+		RSTile walkPath[] = {
+				new RSTile(1687, 3535, 0),
+				new RSTile(1672, 3534, 0),
+				new RSTile(1663, 3537, 0),
+				new RSTile(1654, 3549, 0),
+				new RSTile(1639, 3551, 0),
+				new RSTile(1629, 3563, 0),
+				new RSTile(1628, 3576, 0),
+				new RSTile(1639, 3585, 0),
+				new RSTile(1653, 3596, 0),
+				new RSTile(1667, 3604, 0),
+				new RSTile(1679, 3613, 0)
+		};
+		
+		Walk.walkHumanPath(walkPath);
+		
+		Walk.humanSmallWalk(1679, 3614, 0);
+		Util.randomSleep();
+		Walk.checkForDoor();
+		Util.randomSleep();
+		Walk.humanSmallWalk(1675, 3616, 0);
+		Util.randomSleep();
+		
 		return true;
 	}
 	
@@ -90,14 +164,9 @@ public class Zeah {
 		// Travel to port pisc
 		return NPCTalk.veos();
 	}
-	
-	public static boolean walkToPloughs() {
-		// Walk to plows
-		return Walk.walkToRandom(1768, 3550, 1775, 3550, 0);
-	}
+
 	
 	public static boolean bankInKitcken() {
-		Camera.setCamera(90, 100);
 		return Bank.bankChest();
 	}
 	
@@ -105,30 +174,7 @@ public class Zeah {
 		Camera.setCamera(90, 100);
 		return Bank.bankBooth();
 	}
-	
-	public static boolean walkToHousePortal() {
-		return Walk.walkToRandom(1742, 3515, 1745, 3518, 0);
-	}
-	
-	public static boolean walkToClerk() {
-		return Walk.walkToPosition(1702, 3529, 0);
-	}
-	
-	public static boolean walkToKitchen() {
-		if(!Walk.walkToPosition(1679, 3614, 0)) {
-			return false;
-		}
-		
-		if(!Walk.checkForDoor()) {
-			return false;
-		}
-		
-		if(!Walk.humanSmallWalk(1675, 3616, 0)) {
-			return false;
-		}
-		
-		return true;
-	}
+
 	
 	public static boolean plough() {
 		// Open the quests tab

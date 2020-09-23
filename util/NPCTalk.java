@@ -434,12 +434,21 @@ public class NPCTalk {
 		}
 		
 		if(fastTravel) {
-			if(!npc.click("Port Piscarilius Veos")) {
+			boolean clickedTravel = false;
+			long waitTill = Util.secondsLater(10);
+			while(Util.time() < waitTill) {
+			    Util.randomSleep();
+			    if(npc.click("Port Piscarilius Veos")) {
+			    	clickedTravel = true;
+			    	break;
+			    }
+			}
+			if(!clickedTravel) {
 				Util.log("veos(): Failed fast Travel");
 				return false;
 			}else {
 				// Wait till we're on the ship
-				long waitTill = Util.secondsLater(15);
+				waitTill = Util.secondsLater(15);
 				while(Util.time() < waitTill) {
 				    Util.randomSleep();
 				    if(Player.getPosition().distanceTo(new RSTile(1824, 3695, 1)) < 5) {
@@ -452,57 +461,63 @@ public class NPCTalk {
 			}
 		}
 		
-//		long waitTill = Util.secondsLater(60);
-//		while(Util.time() < waitTill) {
-//			npc.click("Talk-to Kaqemeex");
-//			Util.randomSleepRange(4000,7000);
-//		    
-//		    if(NPCChat.getName() != null && NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName())) {
-//		    	break;
-//		    }
-//		}
-//		
-//		if(!NPCChat.getName().equalsIgnoreCase(Player.getRSPlayer().getName())) {
-//			Util.log("kaqemeex1(): Unable to talk to NPC");
-//			return false;
-//	    }
-//		
-//		
-//		Network.updateSubTask("Talking to kaqemeex");
-//		
-//		waitTill = Util.secondsLater(60*3);
-//		while(Util.time() < waitTill) {
-//
-//			// Get the chat options
-//			List<String> chatOptions = NPCChat.getOptions() != null ? Arrays.asList(NPCChat.getOptions()) : Arrays.asList(new String[0]);
-//			
-//			// If the chat options contains the first
-//			if(chatOptions.contains("I'm in search of a quest.")) {
-//				Util.log("kaqemeex1(): Option 1");
-//				NPCChat.selectOption("I'm in search of a quest.", true);
-//			}else if(chatOptions.contains("I'm in search of a quest")) {
-//				Util.log("kaqemeex1(): Option 1");
-//				NPCChat.selectOption("I'm in search of a quest", true);
-//			}
-//			// Second Options
-//			else if(chatOptions.contains("Okay, I will try and help.")) {
-//				Util.log("kaqemeex1(): Option 2");
-//				NPCChat.selectOption("Okay, I will try and help.", true);
-//			}
-//			else {
-//				Util.log("kaqemeex1(): Clicking continue...");
-//				NPCChat.clickContinue(true);
-//			}
-//			
-//			
-//			
-//			
-//			Util.randomSleepRange(200,1000);
-//			if(NPCChat.getOptions() == null && NPCChat.getName() == null && NPCChat.getMessage() == null) {
-//				Util.log("kaqemeex1(): Chat done");
-//				return true;
-//			}
-//		}
+		return false;
+	}
+
+	public static boolean hosidiusClerk() {
+		Util.log("hosidiusClerk(): Looking for NPC");
+		// Find the npc
+		RSNPC npc =  NPCs.find("Clerk").length != 0 ? NPCs.find("Clerk")[0] : null;
+		
+		Network.updateSubTask("Looking for Clerk");
+		// Check for null
+		if(npc == null) {
+			Util.log("hosidiusClerk(): Unable to find NPC");
+			return false;
+		}
+		
+		long waitTill = Util.secondsLater(10);
+		while(Util.time() < waitTill) {
+		    Util.randomSleep();
+		    if(npc.click("Talk-to Clerk")) {
+		    	break;
+		    }
+		}
+
+		// Continue
+		
+		// Continue
+		
+		// Yes
+		
+		// Continue
+		
+		waitTill = Util.secondsLater(60*3);
+		while(Util.time() < waitTill) {
+
+			// Get the chat options
+			List<String> chatOptions = NPCChat.getOptions() != null ? Arrays.asList(NPCChat.getOptions()) : Arrays.asList(new String[0]);
+			
+			// If the chat options contains the first
+			if(chatOptions.contains("Yes")) {
+				Util.log("hosidiusClerk(): Option 1");
+				NPCChat.selectOption("I'm in search of a quest.", true);
+			}
+			else {
+				Util.log("hosidiusClerk(): Clicking continue...");
+				NPCChat.clickContinue(true);
+			}
+			
+			
+			
+			
+			Util.randomSleepRange(200,1000);
+			if(NPCChat.getOptions() == null && NPCChat.getName() == null && NPCChat.getMessage() == null) {
+				Util.log("hosidiusClerk(): Chat done");
+				return true;
+			}
+		}
+		
 		
 		return false;
 	}

@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.tribot.api.input.Keyboard;
 import org.tribot.api.input.Mouse;
+import org.tribot.api2007.Camera;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Objects;
@@ -182,5 +183,142 @@ public class Cooking {
 		}
 		
 		return null;
+	}
+
+
+	private static boolean useClayOven() {
+		
+		
+		Util.log("useClayOven(): Looking for closest oven");
+		// Find the fire
+		RSObject closestOven = null;
+		int closestOvenDistance = Integer.MAX_VALUE;
+		// Loop through all NPCs with the correct name
+		for(RSObject oven : Objects.findNearest(10, "Clay oven")) {
+			int distance = Player.getPosition().distanceTo(oven.getPosition());
+			
+			if(distance < closestOvenDistance) {
+				closestOvenDistance = distance;
+				closestOven = oven;
+			}
+		}
+		
+		if(closestOven == null) {
+			return false;
+		}
+		
+		Util.log("useClayOven(): Using fish on fire");
+		// Use the fish on the fire
+		if(!closestOven.click("Cook Clay oven")) {
+			return false;
+		}
+		
+		Util.log("useClayOven(): Waiting for make interface");
+		// Wait for the interface to open
+		long endTime = Util.secondsLater(10);
+		while(Util.time() < endTime) {
+			if(Interfaces.get(MAKE_INTERFACE_ID) != null && Interfaces.get(MAKE_INTERFACE_ID).isBeingDrawn() && Interfaces.get(MAKE_INTERFACE_ID).isClickable()) {
+				break;
+			}else {
+				Util.randomSleep();
+			}
+			
+			// If the current time is larger than the end time
+			if(new Date().getTime() > endTime) {
+				return false;
+			}
+		}
+		
+		// Spam space until the make interface is gone
+		endTime = Util.secondsLater(20);
+		Util.log("useClayOven(): Spamming SPACE now");
+		while(true) {
+			Keyboard.sendPress(' ',32);
+			Util.randomSleep();
+			Keyboard.sendRelease(' ',32);
+			
+			
+			// If the current time is larger than the end time
+			if(new Date().getTime() > endTime) {
+				Util.log("useClayOven(): Waited long enough");
+				return false;
+			}
+			
+			if(Interfaces.get(MAKE_INTERFACE_ID) == null) {
+				break;
+			}
+		}
+		
+		Util.log("useClayOven(): Moving mouse off screen");
+		Mouse.leaveGame(true);
+		
+		return true;
+	}
+
+	public static boolean cookFishOnOven() {
+		Camera.setCamera(65, 100);
+		String typeOfFish = "";
+		// Make sure we have items in the inventory
+		if(Inventory.getAll().length == 0) {
+			return false;
+		}
+		
+		// Find the type of fish in the inventory
+		typeOfFish = fishInInventory();
+		if(typeOfFish == null) {
+			return false;
+		}
+		
+		// Use the fish on the fire
+		if(!useClayOven()) {
+			return false;
+		}
+		
+		boolean isThereFishToCook = true;
+		long endTime = Util.secondsLater(90);
+		// wait for done or level up
+		while(isThereFishToCook) {
+			
+			
+			// Check if we're done cooking the fish
+			if(Inventory.getCount(typeOfFish) == 0) {
+				Util.randomSleepRange(0, 5000);
+				return true;
+			}
+			
+			
+			// If there is a level up message
+			if(Interfaces.get(233) != null) {
+				// Check how many fish there are left to cook
+				if(Inventory.getCount(typeOfFish) >= Util.randomNumber(2, 10)) {
+					Util.randomSleepRange(0, 10000);
+					
+					// 30% chance to just bank
+					if(Util.randomNumber(0, 100) > 70) {
+						return true;
+					}
+					
+					if(!useClayOven()) {
+						return false;
+					}
+					endTime = Util.secondsLater(90);
+				}
+			}
+			
+			// If the current time is larger than the end time
+			if(Util.time() > endTime) {
+				Util.log("cookFishOnOven(): Cooked Long Enough");
+				break;
+			}
+			Util.randomSleep();
+		}
+		
+		// Check if we're over the cooking level required
+		if(Skills.getCurrentLevel(Skills.SKILLS.COOKING) >= 68) {
+			JrProcessor.setStatus(JrProcessor.STATUS.COOKING_TRAINING_DONE);
+		}
+		
+
+		return false;
 	}
 }

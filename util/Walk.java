@@ -76,6 +76,17 @@ public class Walk {
 		return walkToPosition(x,y,z);
 	}
 	
+	/**
+	 * Walks to a random area in a 3x3 square around the given point
+	 * @return
+	 */
+	public static boolean walkToRandom(int x1, int y1, int z) {
+		int x = General.random(x1-1, x1+1);
+		int y = General.random(y1-1, y1+1);
+		
+		return walkToPosition(x,y,z);
+	}
+	
 	public static boolean miniMapWalkToRandom(int x1, int y1, int x2, int y2, int z) {
 		
 		int x = 0;
@@ -100,6 +111,46 @@ public class Walk {
 	
 	public static boolean miniMapWalk(int x, int y, int z) {
 		return Walking.clickTileMM(new RSTile(x,y,z), 1);
+	}
+	
+	public static boolean miniMapWalkRandom(int x1, int y1, int z) {
+		int x = General.random(x1-1, x1+1);
+		int y = General.random(y1-1, y1+1);
+		
+		return Walking.clickTileMM(new RSTile(x,y,z), 1);
+	}
+	
+	public static boolean randomHumanSmallWalk(int desX, int desY, int z) {
+		
+		int x = General.random(desX-1, desX+1);
+		int y = General.random(desY-1, desY+1);
+		
+		if(Player.getPosition().equals(new RSTile(x,y,z))) {
+			return true;
+		}
+		
+		if(new RSTile(x,y,z).isOnScreen()) {
+			if(!new RSTile(x,y,z).click("Walk here")) {
+				miniMapWalk(x,y,z);
+			}
+		}else {
+			miniMapWalk(x,y,z);
+		}
+		Util.randomSleep(true);
+		long waitTill = Util.secondsLater(60);
+		while(Util.time() < waitTill) {
+		    Util.randomSleepRange(50,100);
+		    if(Game.getDestination() == null) {
+		    	Util.waitTillMovingStops();
+		    	break;
+		    }
+		}
+		
+	    if(Player.getPosition().equals(new RSTile(x,y,z))) {
+	    	return false;
+	    }
+		
+		return true;
 	}
 	
 	public static boolean humanSmallWalk(int x, int y, int z) {
@@ -432,4 +483,104 @@ public class Walk {
 		Util.log("gangPlank(): Crossed gangplank");
 		return true;
 	}
+
+	public static boolean walkHumanPath(RSTile[] path) {
+		
+		Util.log("walkHumanPath(): Checking where to start on the path");
+		// Try to see what the closest starting point is
+		int startingPoint = 0;
+		int startingPointDistance = Integer.MAX_VALUE;
+		int j = 0;
+		for(RSTile point : path) {
+			if(Player.getPosition().distanceTo(point) < startingPointDistance) {
+				startingPoint = j;
+				startingPointDistance = Player.getPosition().distanceTo(point);
+			}
+			
+			j++;
+		}
+		
+		Util.log("walkHumanPath(): Starting at point #"+startingPoint);
+		
+		boolean lastClickHalfway = false;
+		
+		// main walking loop
+		for(int i = startingPoint; i < path.length; i++) {
+			Util.log("walkHumanPath(): Walking to point #"+i);
+			// Get the random position
+			int x = General.random(path[i].getX()-1, path[i].getX()+1);
+			int y = General.random(path[i].getY()-1, path[i].getY()+1);
+			int z = path[i].getPlane();
+			
+			// Check if we're at that current position
+			if(Player.getPosition().equals(new RSTile(x,y,z))) {
+				continue;
+			}
+			
+			// Check if we already clicked this position
+			if(Game.getDestination() == null || Game.getDestination().distanceTo(path[i]) > 4) {
+				if(!miniMapWalk(x,y,z)) {
+					Util.log("walkHumanPath(): Clicking halfway");
+					// Walk halfway
+					int hX = ((Player.getPosition().getX()-x)/2)+x;
+					int hY = ((Player.getPosition().getY()-y)/2)+y;
+					
+					miniMapWalkRandom(hX,hY,z);
+					lastClickHalfway = true;
+				}else {
+					Util.log("walkHumanPath(): Clicked minimap");
+				}
+			}
+			
+			boolean hasMidwayWalked = false;
+			
+			// wait while moving
+			long waitTill = Util.secondsLater(60);
+			while(Util.time() < waitTill) {
+			    Util.randomSleepRange(30,50);
+			    
+			    // If we're currently don't have a destination 
+			    if(Game.getDestination() == null) {
+			    	Util.waitTillMovingStops();
+			    	break;
+			    }
+			    
+			    // Try to see if we can see the next spot to walk to
+			    try {
+			    	if(miniMapWalkRandom(path[i+1].getX(),path[i+1].getY(),path[i+1].getPlane())) {
+			    		Util.log("walkHumanPath(): Able to click point #"+(i+1));
+			    		lastClickHalfway = false;
+			    		break;
+			    	}
+			    }catch(Exception e) {
+			    	
+			    }
+			    
+			    // See if we're about 4 tiles away, if so, click halfway to the next tile
+			    try {
+			    	if(Player.getPosition().distanceTo(path[i]) <= 8 && hasMidwayWalked == false) {
+			    		hasMidwayWalked = true;
+			    		Util.log("walkHumanPath(): Getting close to clicking half way");
+			    		// Walk halfway
+						int hX = ((Player.getPosition().getX()-path[i+1].getX())/2)+path[i+1].getX();
+						int hY = ((Player.getPosition().getY()-path[i+1].getY())/2)+path[i+1].getY();
+						
+						miniMapWalkRandom(hX,hY,z);
+						
+			    	}
+			    }catch(Exception e) {
+			    	
+			    }
+			}
+			if(lastClickHalfway) {
+				i--;
+				lastClickHalfway = false;
+			}
+			
+		}
+		Util.log("walkHumanPath(): Path completed!");
+		return true;
+	}
+
+
 }
