@@ -111,6 +111,13 @@ public class PredefinedStateOrders {
 		return newList;
 	}
 	
-	
+	public static LinkedList<Integer> hosidiusFavour() {
+		LinkedList<Integer> newList = new LinkedList<Integer>();
+		newList.addAll(Arrays.asList(
+				1005	// Set objective as hosidius favour
+			));
+		
+		return newList;
+	}
 	
 }
